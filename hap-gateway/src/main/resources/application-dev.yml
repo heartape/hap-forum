@@ -1,0 +1,45 @@
+server:
+  port: 8080
+spring:
+  application:
+    # 在注册中心的服务名
+    name: hap-gateway
+  cloud:
+    nacos:
+      discovery:
+        # 启动的nacos的ip和端口
+        server-addr: 127.0.0.1:8848
+    gateway:
+      discovery:
+        locator:
+          # 开启从服务注册中心动态创建路由的功能，利用微服务名称进行路由
+          enabled: true
+      routes:
+        - id: heartape-security-exclude
+          # uri路由到哪个地址,lb负载均衡
+          uri: lb://heartape-security
+          # 断言,即条件判断,精确的路由放到前面
+          predicates:
+            - Path=/security/check
+          filters:
+            # 重写路径
+            # - RewritePath=/(?<segment>.*),/$\{segment}
+            - RewritePath=/(?<segment>.*),/$\{segment}/refuse
+        - id: heartape-security
+          # uri路由到哪个地址,lb负载均衡
+          uri: lb://heartape-security
+          # 断言,即条件判断,精确的路由放到前面
+          predicates:
+            - Path=/security/**
+          filters:
+            # 重写路径
+            # - RewritePath=/(?<segment>.*),/$\{segment}
+        - id: heartape-front
+          # uri路由到哪个地址,lb负载均衡
+          uri: lb://heartape-front
+          # 断言,即条件判断,精确的路由放到前面
+          predicates:
+            - Path=/front/**
+          filters:
+          # 重写路径
+          # - RewritePath=/(?<segment>.*),/$\{segment}
