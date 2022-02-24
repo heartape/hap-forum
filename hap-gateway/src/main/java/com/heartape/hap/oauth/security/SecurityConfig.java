@@ -9,8 +9,6 @@ import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.logout.HttpStatusReturningServerLogoutSuccessHandler;
-import reactor.core.publisher.Mono;
 
 import java.util.LinkedList;
 
@@ -30,6 +28,12 @@ public class SecurityConfig {
     private HapReactiveAuthenticationManager hapReactiveAuthenticationManager;
     @Autowired
     private HapSecurityContextRepository hapSecurityContextRepository;
+    @Autowired
+    private HapAuthenticationSuccessHandler authenticationSuccessHandler;
+    @Autowired
+    private HapAuthenticationFailureHandler authenticationFailureHandler;
+    @Autowired
+    private HapLogoutSuccessHandler logoutSuccessHandler;
 
     /**
      * BCrypt密码编码
@@ -45,10 +49,6 @@ public class SecurityConfig {
     @Bean
     public ReactiveAuthenticationManager authenticationManager() {
         LinkedList<ReactiveAuthenticationManager> managers = new LinkedList<>();
-        managers.add(authentication -> {
-            // 其他登陆方式 (比如手机号验证码登陆) 可在此设置不得抛出异常或者 Mono.error
-            return Mono.empty();
-        });
         // 必须放最后不然会优先使用用户名密码校验但是用户名密码不对时此 AuthenticationManager 会调用 Mono.error 造成后面的 AuthenticationManager 不生效
         managers.add(new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService));
         managers.add(hapReactiveAuthenticationManager);
@@ -59,22 +59,25 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         // @formatter:off
         return http
+                .authorizeExchange()
+                .pathMatchers("/login").permitAll()
+                .pathMatchers("/check").permitAll()
+                // 除上面外的所有请求全部需要鉴权认证
+                .anyExchange().authenticated().and()
+                .formLogin()
+                .authenticationSuccessHandler(authenticationSuccessHandler)
+                .authenticationFailureHandler(authenticationFailureHandler)
+                .and()
                 // CSRF禁用，因为不使用session
                 .csrf().disable()
-                .formLogin().disable()
-                // 登录认证处理器
+                // 认证处理器
                 .authenticationManager(authenticationManager())
                 .securityContextRepository(hapSecurityContextRepository)
                 // 认证失败处理器
                 .exceptionHandling().accessDeniedHandler(accessDeniedHandler).and()
                 .exceptionHandling().authenticationEntryPoint(entryPoint).and()
                 // 退出登录处理器
-                .logout().logoutUrl("/logout").logoutSuccessHandler(new HttpStatusReturningServerLogoutSuccessHandler()).and()
-                .authorizeExchange()
-                .pathMatchers("/check").permitAll()
-                .pathMatchers("/login").permitAll()
-                // 除上面外的所有请求全部需要鉴权认证
-                .anyExchange().authenticated().and()
+                .logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler).and()
                 .build();
         // @formatter:on
     }

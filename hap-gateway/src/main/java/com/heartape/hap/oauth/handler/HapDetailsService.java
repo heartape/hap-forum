@@ -1,6 +1,6 @@
 package com.heartape.hap.oauth.handler;
 
-import com.heartape.hap.oauth.entity.HapUserDetails;
+import com.heartape.hap.oauth.security.HapUserDetails;
 import com.heartape.hap.oauth.entity.Visitor;
 import com.heartape.hap.oauth.security.HapGrantedAuthority;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,6 +20,9 @@ import java.util.List;
 @Service
 public class HapDetailsService implements ReactiveUserDetailsService {
 
+    /**
+     * 新版spring security保存密码时需要携带{bcrypt},没有的话会报缺少id错误
+     */
     @Override
     public Mono<UserDetails> findByUsername(String s) {
         Visitor visitor = new Visitor(1L,"123456", "{bcrypt}" + new BCryptPasswordEncoder().encode("123456"),"nickname","avatar","admin","1234567890","12345@qq.com", LocalDateTime.now());

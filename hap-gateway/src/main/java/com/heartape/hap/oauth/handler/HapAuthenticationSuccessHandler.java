@@ -1,6 +1,8 @@
 package com.heartape.hap.oauth.handler;
 
-import com.heartape.hap.oauth.entity.HapUserDetails;
+import com.google.gson.Gson;
+import com.heartape.hap.oauth.response.Result;
+import com.heartape.hap.oauth.security.HapUserDetails;
 import com.heartape.hap.oauth.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -12,7 +14,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * 登录成功处理器
+ * formLogin登录成功处理器
  */
 @Component
 public class HapAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
@@ -27,7 +29,8 @@ public class HapAuthenticationSuccessHandler implements ServerAuthenticationSucc
             // 生成JWT token
             HapUserDetails userDetails = (HapUserDetails) authentication.getPrincipal();
             String token = tokenUtils.create(userDetails);
-            DataBuffer dataBuffer = dataBufferFactory.wrap(token.getBytes());
+            Result result = Result.success(token);
+            DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
             return response.writeWith(Mono.just(dataBuffer));
         }));
     }

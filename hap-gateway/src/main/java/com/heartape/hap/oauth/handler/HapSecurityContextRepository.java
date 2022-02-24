@@ -38,9 +38,9 @@ public class HapSecurityContextRepository implements ServerSecurityContextReposi
     public Mono<SecurityContext> load(ServerWebExchange exchange) {
         String token = tokenUtils.getToken(exchange);
         if (StringUtils.hasText(token)) {
-            return authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(token, null)
-            ).map(SecurityContextImpl::new);
+            return authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(token, null))
+                    .map(SecurityContextImpl::new);
         }
         return Mono.empty();
     }

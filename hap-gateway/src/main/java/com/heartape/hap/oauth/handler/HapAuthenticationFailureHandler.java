@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 /**
- * 登录失败处理器
+ * formLogin登录失败处理器
  */
 @Component
 public class HapAuthenticationFailureHandler implements ServerAuthenticationFailureHandler {
@@ -25,7 +25,7 @@ public class HapAuthenticationFailureHandler implements ServerAuthenticationFail
         ServerHttpResponse response = webFilterExchange.getExchange().getResponse();
         String path = request.getPath().toString();
         DataBufferFactory dataBufferFactory = response.bufferFactory();
-        ErrorResult result = ErrorResult.error(HttpStatus.FORBIDDEN, ResultCode.USER_TOKEN_ERROR,path);
+        ErrorResult result = ErrorResult.error(HttpStatus.FORBIDDEN, ResultCode.USER_LOGIN_ERROR,path);
         DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
         return response.writeWith(Mono.just(dataBuffer));
     }

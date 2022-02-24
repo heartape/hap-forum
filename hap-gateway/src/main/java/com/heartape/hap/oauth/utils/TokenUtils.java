@@ -1,12 +1,11 @@
 package com.heartape.hap.oauth.utils;
 
 import com.heartape.hap.oauth.constant.RedisKeys;
-import com.heartape.hap.oauth.entity.HapUserDetails;
+import com.heartape.hap.oauth.security.HapUserDetails;
 import com.heartape.hap.oauth.exception.LoginForbiddenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -118,6 +117,9 @@ public class TokenUtils {
         return getTokenValue(tokenKey);
     }
 
+    /**
+     * 获取用户id
+     */
     public long getUid(ServerWebExchange exchange){
         String token = getToken(exchange);
         Claims claims = parseAutograph(token);
@@ -126,26 +128,15 @@ public class TokenUtils {
         return userDetails.getUid();
     }
 
-//    public void delete(){
-//        // 获取在请求头中的token
-//        String token = HttpRequestUtil.getRequest().getHeader(header);
-//        // 将token解签名
-//        String uuid = parseAutograph(token);
-//        redisTemplate.delete(uuid);
-//    }
-
     /**
      * 用于springSecurity的退出控制器
      */
-//    public void delete(HttpServletRequest httpServletRequest){
-//        // 获取在请求头中的token
-//        String token = httpServletRequest.getHeader(this.header);
-//        if (token!=null){
-//            // 将token解签名
-//            String uuid = parseAutograph(token);
-//            redisTemplate.delete(uuid);
-//        }
-//    }
+    public void delete(ServerWebExchange exchange){
+        String token = getToken(exchange);
+        Claims claims = parseAutograph(token);
+        String tokenKey = getTokenKey(claims);
+        redisTemplate.delete(tokenKey);
+    }
 
     /**
      * 用户10分钟之内最多进行10次登录
