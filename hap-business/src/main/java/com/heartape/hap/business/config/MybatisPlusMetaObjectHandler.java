@@ -1,7 +1,7 @@
-package com.heartape.hap.admin.config;
+package com.heartape.hap.business.config;
 
 import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
-import com.heartape.hap.admin.feign.TokenFeignService;
+import com.heartape.hap.business.feign.TokenFeignService;
 import org.apache.ibatis.reflection.MetaObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

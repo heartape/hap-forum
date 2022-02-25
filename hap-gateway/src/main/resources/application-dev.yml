@@ -1,7 +1,7 @@
 server:
   port: 8080
 token:
-  secret: 1qweq2eq2
+  secret: 1qweq2eq2wafawgf3
   expireTime: 7
   header: hap-token
 spring:
@@ -19,30 +19,30 @@ spring:
           # 开启从服务注册中心动态创建路由的功能，利用微服务名称进行路由
           enabled: true
       routes:
-        - id: heartape-oauth
+        - id: hap-api
           # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-oauth
+          uri: lb://hap-api
           # 断言,即条件判断,精确的路由放到前面
           predicates:
-            - Path=/oauth/**
+            - Path=/api/**
           # filters:
             # 重写路径
             # - RewritePath=/(?<segment>.*),/$\{segment}
-        - id: heartape-admin
+        - id: hap-admin
           # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-admin
+          uri: lb://hap-admin
           # 断言,即条件判断,精确的路由放到前面
           predicates:
             - Path=/admin/**
           # filters:
           # 重写路径
           # - RewritePath=/(?<segment>.*),/$\{segment}
-        - id: heartape-front
-          # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-front
-          # 断言,即条件判断,精确的路由放到前面
-          predicates:
-            - Path=/front/**
-          # filters:
-          # 重写路径
-          # - RewritePath=/(?<segment>.*),/$\{segment}
+#        - id: hap-business
+#          # uri路由到哪个地址,lb负载均衡
+#          uri: lb://hap-business
+#          # 断言,即条件判断,精确的路由放到前面
+#          predicates:
+#            - Path=/business/**
+#          # filters:
+#          # 重写路径
+#          # - RewritePath=/(?<segment>.*),/$\{segment}

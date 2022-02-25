@@ -26,11 +26,7 @@ public class HapDetailsService implements ReactiveUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String s) {
         Visitor visitor = new Visitor(1L,"123456", "{bcrypt}" + new BCryptPasswordEncoder().encode("123456"),"nickname","avatar","admin","1234567890","12345@qq.com", LocalDateTime.now());
-        String role = visitor.getRole();
-        HapGrantedAuthority hapGrantedAuthority = new HapGrantedAuthority(role);
-        List<GrantedAuthority> roles = new ArrayList<>();
-        roles.add(hapGrantedAuthority);
-        HapUserDetails hapUserDetails = new HapUserDetails(visitor, roles);
+        HapUserDetails hapUserDetails = new HapUserDetails(visitor);
         return Mono.just(hapUserDetails);
     }
 }

@@ -1,6 +1,7 @@
 package com.heartape.hap.oauth.security;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
@@ -13,7 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -31,23 +31,17 @@ public class HapUserDetails implements UserDetails {
     private LocalDateTime loginTime;
 
     private Long uid;
-    private String password;
     private String username;
+    private String password;
     private String nickname;
     private String avatar;
     private String role;
-    private Set<GrantedAuthority> authorities;
-    private boolean accountNonExpired;
-    private boolean accountNonLocked;
-    private boolean credentialsNonExpired;
-    private boolean enabled;
 
     public HapUserDetails() {
     }
 
-    public HapUserDetails(Visitor visitor, List<GrantedAuthority> roles) {
+    public HapUserDetails(Visitor visitor) {
         this.loginTime = LocalDateTime.now();
-        this.authorities = new HashSet<>(roles);
         this.uid = visitor.getUid();
         this.username = visitor.getUsername();
         this.nickname = visitor.getNickname();
@@ -56,8 +50,15 @@ public class HapUserDetails implements UserDetails {
         this.role = visitor.getRole();
     }
 
+    /**
+     * redis序列化时会将所有的getter方法视为一个成员变量,需要忽略
+     */
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        HapGrantedAuthority hapGrantedAuthority = new HapGrantedAuthority(role);
+        Set<GrantedAuthority> authorities = new HashSet<>();
+        authorities.add(hapGrantedAuthority);
         return authorities;
     }
 
@@ -72,21 +73,25 @@ public class HapUserDetails implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return true;
     }
