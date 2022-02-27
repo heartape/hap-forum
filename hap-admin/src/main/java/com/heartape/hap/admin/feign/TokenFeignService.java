@@ -6,6 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @FeignClient("hap-api")
 public interface TokenFeignService {
-    @GetMapping("/uid")
+    @GetMapping("/api/oauth/uid")
     Result getUid();
 }

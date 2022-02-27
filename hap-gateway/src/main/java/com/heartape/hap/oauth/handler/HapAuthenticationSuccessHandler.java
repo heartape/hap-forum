@@ -2,7 +2,7 @@ package com.heartape.hap.oauth.handler;
 
 import com.google.gson.Gson;
 import com.heartape.hap.oauth.response.Result;
-import com.heartape.hap.oauth.security.HapUserDetails;
+import com.heartape.hap.oauth.entity.HapUserDetails;
 import com.heartape.hap.oauth.utils.TokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.buffer.DataBuffer;

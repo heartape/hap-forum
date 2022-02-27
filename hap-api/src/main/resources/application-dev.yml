@@ -23,3 +23,5 @@ oss:
 token:
   secret: 1qweq2eq2wafawgf3
   header: hap-token
+code:
+  expireTime: 60

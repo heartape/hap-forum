@@ -1,7 +1,7 @@
 package com.heartape.hap.oauth.utils;
 
 import com.heartape.hap.oauth.constant.RedisKeys;
-import com.heartape.hap.oauth.security.HapUserDetails;
+import com.heartape.hap.oauth.entity.HapUserDetails;
 import com.heartape.hap.oauth.exception.LoginForbiddenException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -37,11 +37,9 @@ public class TokenUtils {
     private String secret;
 
     @Value("${token.expireTime}")
-    private Integer expireTime;
+    private Integer tokenExpireTime;
 
-    /**
-     * 请求头
-     */
+    /** 请求头 */
     @Value("${token.header}")
     private String header;
 
@@ -50,13 +48,13 @@ public class TokenUtils {
      */
     private final String TOKEN_KEY = "token_key";
     /**
-     * redis的key前缀
+     * redis的token的key前缀
      */
     private final String TOKEN_KEY_HEADER = "hap.token:";
 
     public String create(HapUserDetails hapUserDetails){
         String tokenKey = TOKEN_KEY_HEADER + UUID.randomUUID();
-        redisTemplate.opsForValue().set(tokenKey, hapUserDetails, expireTime, TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(tokenKey, hapUserDetails, tokenExpireTime, TimeUnit.DAYS);
         return autograph(tokenKey);
     }
 

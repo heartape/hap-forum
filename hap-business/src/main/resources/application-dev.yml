@@ -1,9 +1,9 @@
 server:
-  port: 8082
+  port: 8083
 spring:
   application:
     # 在注册中心的服务名
-    name: hap-admin
+    name: hap-business
   cloud:
     nacos:
       discovery:

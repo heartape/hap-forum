@@ -1,6 +1,7 @@
 package com.heartape.hap.oauth.handler;
 
 import com.google.gson.Gson;
+import com.heartape.hap.oauth.exception.LoginForbiddenException;
 import com.heartape.hap.oauth.response.ErrorResult;
 import com.heartape.hap.oauth.response.ResultCode;
 import io.jsonwebtoken.SignatureException;
@@ -29,7 +30,10 @@ public class FilterExceptionHandler implements ErrorWebExceptionHandler {
         ResultCode resultCode;
         if (ex instanceof SignatureException) {
             resultCode = ResultCode.USER_TOKEN_ERROR;
-        } else {
+        } else if (ex instanceof LoginForbiddenException) {
+            resultCode = ResultCode.USER_LOGIN_ERROR;
+        }
+        else {
             resultCode = ResultCode.PERMISSION_NO_ACCESS;
         }
         return Mono.defer(() -> Mono.just(exchange.getResponse()))

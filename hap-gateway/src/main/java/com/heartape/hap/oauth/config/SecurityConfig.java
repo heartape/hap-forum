@@ -1,4 +1,4 @@
-package com.heartape.hap.oauth.security;
+package com.heartape.hap.oauth.config;
 
 import com.heartape.hap.oauth.handler.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,13 +55,17 @@ public class SecurityConfig {
         return new DelegatingReactiveAuthenticationManager(managers);
     }
 
+    /**
+     * 在前面的url优先级更高
+     */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         // @formatter:off
         return http
                 .authorizeExchange()
-                .pathMatchers("/login").permitAll()
-                .pathMatchers("/check").permitAll()
+                .pathMatchers("/login", "/check", "/api/oauth/code").permitAll()
+                .pathMatchers("/api/oauth/info").authenticated()
+                .pathMatchers("/api/oauth/**").denyAll()
                 // 除上面外的所有请求全部需要鉴权认证
                 .anyExchange().authenticated().and()
                 .formLogin()

@@ -1,4 +1,4 @@
-package com.heartape.hap.oauth.security;
+package com.heartape.hap.oauth.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

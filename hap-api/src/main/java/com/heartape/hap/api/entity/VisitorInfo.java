@@ -1,4 +1,4 @@
-package com.heartape.hap.oauth.entity;
+package com.heartape.hap.api.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;

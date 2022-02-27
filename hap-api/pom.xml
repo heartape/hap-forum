@@ -128,6 +128,12 @@
             <version>0.9.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.octo.captcha</groupId>
+            <artifactId>jcaptcha</artifactId>
+            <version>1.0</version>
+        </dependency>
+
         <!--    swagger2    -->
         <dependency>
             <groupId>io.springfox</groupId>

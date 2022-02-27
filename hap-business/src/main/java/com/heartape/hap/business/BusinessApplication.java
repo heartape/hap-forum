@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-@EnableFeignClients(basePackages = "com.heartape.hap.admin.feign")
+@EnableFeignClients(basePackages = "com.heartape.hap.business.feign")
 public class BusinessApplication {
 
     public static void main(String[] args) {

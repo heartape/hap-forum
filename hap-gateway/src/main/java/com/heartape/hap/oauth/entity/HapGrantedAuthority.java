@@ -1,4 +1,4 @@
-package com.heartape.hap.oauth.security;
+package com.heartape.hap.oauth.entity;
 
 import lombok.EqualsAndHashCode;
 import org.springframework.security.core.GrantedAuthority;
