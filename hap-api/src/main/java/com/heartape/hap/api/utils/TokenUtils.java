@@ -1,5 +1,7 @@
 package com.heartape.hap.api.utils;
 
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.ShearCaptcha;
 import com.heartape.hap.api.entity.LoginCode;
 import com.heartape.hap.oauth.entity.HapUserDetails;
 import io.jsonwebtoken.Claims;
@@ -15,7 +17,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -33,9 +34,6 @@ public class TokenUtils {
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
-
-    @Autowired
-    private CodeUtils codeUtils;
 
     @Value("${token.secret}")
     private String secret;
@@ -57,20 +55,15 @@ public class TokenUtils {
      * 新的验证码
      */
     public LoginCode newCode() {
-        String code = "123456";
         String codeId = UUID.randomUUID().toString();
+        // 创建图片验证码,定义图形验证码的长、宽、验证码字符数、干扰线宽度
+        ShearCaptcha shearCaptcha = CaptchaUtil.createShearCaptcha(100, 50, 4, 2);
+        // base64格式前加上 data:image/jpg;base64,/
+        String imageBase64Data = shearCaptcha.getImageBase64Data();
+        String code = shearCaptcha.getCode();
         String codeKey = String.format(CODE_KEY_HEADER, codeId);
         stringRedisTemplate.opsForValue().set(codeKey,code,codeExpireTime, TimeUnit.SECONDS);
-        // todo: 将code转化为随即图片并返回
-
-        String picture = "";
-        try {
-            picture = codeUtils.createPicture(code);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new LoginCode(codeId, picture);
+        return new LoginCode(codeId, imageBase64Data);
     }
 
     /**

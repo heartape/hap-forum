@@ -129,9 +129,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.octo.captcha</groupId>
-            <artifactId>jcaptcha</artifactId>
-            <version>1.0</version>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-captcha</artifactId>
+            <version>5.7.20</version>
         </dependency>
 
         <!--    swagger2    -->

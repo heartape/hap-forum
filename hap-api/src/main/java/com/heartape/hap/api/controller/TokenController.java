@@ -6,6 +6,8 @@ import com.heartape.hap.api.entity.VisitorInfo;
 import com.heartape.hap.oauth.entity.HapUserDetails;
 import com.heartape.hap.api.response.Result;
 import com.heartape.hap.api.utils.TokenUtils;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,13 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/oauth")
+@Api("认证相关接口")
 public class TokenController {
 
     @Autowired
     private TokenUtils tokenUtils;
 
+    @ApiOperation("获取验证码")
     @GetMapping("/code")
     public Result getCode() {
         LoginCode loginCode = tokenUtils.newCode();
