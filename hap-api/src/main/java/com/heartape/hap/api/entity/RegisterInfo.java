@@ -1,17 +1,25 @@
 package com.heartape.hap.api.entity;
 
+import com.heartape.hap.api.annotation.Phone;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
+import javax.validation.constraints.Email;
+
 @Data
 @ApiModel(value="注册对象", description="注册对象")
 public class RegisterInfo {
 
-    @ApiModelProperty(value = "账户")
-    @Length(min = 8, max = 16, message = "请输入8-16位长度的用户名")
-    private String username;
+    @ApiModelProperty(value = "邮箱")
+    @Length(min = 8, max = 16, message = "请输入8-16位长度的密码")
+    @Email(message = "不符合规范的邮箱", regexp = "^[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$")
+    private String email;
+
+    @ApiModelProperty(value = "手机")
+    @Phone(message = "不符合规范的手机号")
+    private String mobile;
 
     @ApiModelProperty(value = "密码")
     @Length(min = 8, max = 16, message = "请输入8-16位长度的密码")
@@ -24,10 +32,4 @@ public class RegisterInfo {
     @ApiModelProperty(value = "角色")
     @Length(min = 5, max = 10, message = "请输入正确的角色")
     private String role;
-
-    @ApiModelProperty(value = "手机")
-    private String mobile;
-
-    @ApiModelProperty(value = "验证码")
-    private String code;
 }
