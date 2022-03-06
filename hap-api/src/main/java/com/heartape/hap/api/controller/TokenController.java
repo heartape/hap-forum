@@ -1,6 +1,8 @@
 package com.heartape.hap.api.controller;
 
 import com.heartape.hap.api.entity.LoginCode;
+import com.heartape.hap.api.entity.LoginForm;
+import com.heartape.hap.api.entity.RO.LoginCodeRO;
 import com.heartape.hap.api.entity.Visitor;
 import com.heartape.hap.api.entity.VisitorInfo;
 import com.heartape.hap.oauth.entity.HapUserDetails;
@@ -30,7 +32,7 @@ public class TokenController {
     }
 
     @PostMapping("/code")
-    public Result checkCode(@RequestBody LoginCode loginCode) {
+    public Result checkCode(@RequestBody LoginCodeRO loginCode) {
         boolean check = tokenUtils.checkCode(loginCode);
         return Result.success(check);
     }
@@ -55,13 +57,31 @@ public class TokenController {
         return Result.success(visitorInfo);
     }
 
+    @PostMapping("/check")
+    public Result check() {
+        return Result.success("success");
+    }
+
     /**
      * 用于gateway登陆时调用数据库查询用户信息
      */
-    @GetMapping("/login")
-    public Result login(String username) {
+    @GetMapping("/login/mail/password")
+    public Result mailPasswordLogin(String username) {
+        if (!"heartape@163.com".equals(username)) {
+            throw new RuntimeException();
+        }
         // 123456
-        Visitor visitor = new Visitor(1L,"123456", "{bcrypt}$2a$10$LqjI9U/GxgHn/ws9bOMCNOQkjBRm7GYA1w/BI31nqQmrVoFrLLgsu","nickname","avatar","admin","1234567890","12345@qq.com", LocalDateTime.now());
+        Visitor visitor = new Visitor(1L,"heartape@163.com", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin","1234567890","heartape@163.com", LocalDateTime.now());
         return Result.success(visitor);
+    }
+
+    @PostMapping("/login/mail/code")
+    public Result mailCodeLogin(@RequestBody LoginForm loginForm) {
+        return Result.success();
+    }
+
+    @PostMapping("/login/phone/code")
+    public Result phoneCodeLogin(@RequestBody LoginForm loginForm) {
+        return Result.success();
     }
 }

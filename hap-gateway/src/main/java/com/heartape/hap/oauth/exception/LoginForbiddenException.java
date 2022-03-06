@@ -7,7 +7,7 @@ public class LoginForbiddenException extends BusinessException {
 
     private final BusinessExceptionEnum exceptionEnum = BusinessExceptionEnum.USER_LOGIN_FORBIDDEN;
 
-    public LoginForbiddenException() {
-        super();
+    public LoginForbiddenException(String message) {
+        super(message);
     }
 }

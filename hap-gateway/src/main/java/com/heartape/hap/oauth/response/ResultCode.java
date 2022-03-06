@@ -17,6 +17,7 @@ public enum ResultCode {
     USER_NOT_EXIST(20006,"用户不存在"),
     USER_HAS_EXISTED(20007,"用户已存在"),
     LOGIN_CREDENTIAL(20008,"凭证已存在"),
+    USER_VERIFICATION_CODE_ERROR(20009,"随机验证码错误"),
     /** 业务 */
     SPECIFIED_QUESTIONED_USER_NOT_EXIST(30001,"业务错误"),
     /** 系统 */

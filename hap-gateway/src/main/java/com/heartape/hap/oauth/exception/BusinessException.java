@@ -9,6 +9,10 @@ public class BusinessException extends RuntimeException {
 
     private BusinessExceptionEnum exceptionEnum;
 
+    public BusinessException(String message) {
+        super(message);
+    }
+
     public BusinessException() {
     }
 

@@ -1,7 +1,9 @@
 package com.heartape.hap.oauth.handler;
 
 import com.google.gson.Gson;
+import com.heartape.hap.oauth.exception.LoginErrorException;
 import com.heartape.hap.oauth.exception.LoginForbiddenException;
+import com.heartape.hap.oauth.exception.VerificationCodeErrorException;
 import com.heartape.hap.oauth.response.ErrorResult;
 import com.heartape.hap.oauth.response.ResultCode;
 import io.jsonwebtoken.SignatureException;
@@ -15,6 +17,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import java.util.concurrent.CompletionException;
 
 /**
  * 过滤器异常处理
@@ -30,10 +34,15 @@ public class FilterExceptionHandler implements ErrorWebExceptionHandler {
         ResultCode resultCode;
         if (ex instanceof SignatureException) {
             resultCode = ResultCode.USER_TOKEN_ERROR;
+        } else if (ex instanceof CompletionException) {
+            resultCode = ResultCode.SYSTEM_INNER_ERROR;
         } else if (ex instanceof LoginForbiddenException) {
-            resultCode = ResultCode.USER_LOGIN_ERROR;
-        }
-        else {
+            resultCode = ((LoginForbiddenException) ex).getExceptionEnum().getResultCode();
+        } else if (ex instanceof LoginErrorException) {
+            resultCode = ((LoginErrorException) ex).getExceptionEnum().getResultCode();
+        } else if (ex instanceof VerificationCodeErrorException) {
+            resultCode = ((VerificationCodeErrorException) ex).getExceptionEnum().getResultCode();
+        } else {
             resultCode = ResultCode.PERMISSION_NO_ACCESS;
         }
         return Mono.defer(() -> Mono.just(exchange.getResponse()))

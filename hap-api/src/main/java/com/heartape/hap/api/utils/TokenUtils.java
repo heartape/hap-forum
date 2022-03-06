@@ -3,6 +3,7 @@ package com.heartape.hap.api.utils;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import com.heartape.hap.api.entity.LoginCode;
+import com.heartape.hap.api.entity.RO.LoginCodeRO;
 import com.heartape.hap.oauth.entity.HapUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -69,7 +70,7 @@ public class TokenUtils {
     /**
      * 校验验证码
      */
-    public boolean checkCode(LoginCode loginCode) {
+    public boolean checkCode(LoginCodeRO loginCode) {
         String codeKey = String.format(CODE_KEY_HEADER, loginCode.getCodeId());
         String codeValue = stringRedisTemplate.opsForValue().get(codeKey);
         return StringUtils.hasText(codeValue) && codeValue.equals(loginCode.getCode());

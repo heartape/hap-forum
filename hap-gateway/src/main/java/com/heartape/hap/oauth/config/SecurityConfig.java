@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.authentication.*;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,9 +13,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import java.util.LinkedList;
 
-/**
- * prePostEnabled属性不添加会导致无法启动
- */
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
@@ -34,6 +32,8 @@ public class SecurityConfig {
     private HapAuthenticationFailureHandler authenticationFailureHandler;
     @Autowired
     private HapLogoutSuccessHandler logoutSuccessHandler;
+    @Autowired
+    private PreLoginHandler preLoginHandler;
 
     /**
      * BCrypt密码编码
@@ -49,8 +49,10 @@ public class SecurityConfig {
     @Bean
     public ReactiveAuthenticationManager authenticationManager() {
         LinkedList<ReactiveAuthenticationManager> managers = new LinkedList<>();
-        // 必须放最后不然会优先使用用户名密码校验但是用户名密码不对时此 AuthenticationManager 会调用 Mono.error 造成后面的 AuthenticationManager 不生效
-        managers.add(new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService));
+
+        UserDetailsRepositoryReactiveAuthenticationManager authenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
+        authenticationManager.setPasswordEncoder(passwordEncoder());
+        managers.add(authenticationManager);
         managers.add(hapReactiveAuthenticationManager);
         return new DelegatingReactiveAuthenticationManager(managers);
     }
@@ -60,14 +62,14 @@ public class SecurityConfig {
      */
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        // @formatter:off
         return http
                 .authorizeExchange()
-                .pathMatchers("/login", "/check", "/api/oauth/code").permitAll()
-                .pathMatchers("/api/oauth/info").authenticated()
-                .pathMatchers("/api/oauth/**").denyAll()
+                .pathMatchers("/login", "/login/mail", "/login/phone", "/api/oauth/check", "/api/oauth/code").permitAll()
+//                .pathMatchers("/api/oauth/info").authenticated()
+//                .pathMatchers("/api/oauth/**").denyAll()
                 // 除上面外的所有请求全部需要鉴权认证
-                .anyExchange().authenticated().and()
+                .anyExchange().authenticated()
+                .and()
                 .formLogin()
                 .authenticationSuccessHandler(authenticationSuccessHandler)
                 .authenticationFailureHandler(authenticationFailureHandler)
@@ -82,8 +84,9 @@ public class SecurityConfig {
                 .exceptionHandling().authenticationEntryPoint(entryPoint).and()
                 // 退出登录处理器
                 .logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler).and()
+                // todo:前后端对接时将验证码过滤器加入
+                // .addFilterAt(preLoginHandler, SecurityWebFiltersOrder.FIRST)
                 .build();
-        // @formatter:on
     }
 
 }

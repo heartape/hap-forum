@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * token操作工具类
@@ -51,6 +53,16 @@ public class TokenUtils {
      * redis的token的key前缀
      */
     private final String TOKEN_KEY_HEADER = "hap.token:";
+
+    /**
+     * 检查是否是正确的邮箱格式
+     */
+    public boolean checkMail(String mail) {
+        String format = "^[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$";
+        Pattern pattern = Pattern.compile(format);
+        Matcher matcher = pattern.matcher(mail);
+        return matcher.matches();
+    }
 
     public String create(HapUserDetails hapUserDetails){
         String tokenKey = TOKEN_KEY_HEADER + UUID.randomUUID();
@@ -106,27 +118,6 @@ public class TokenUtils {
     }
 
     /**
-     * 获取用户信息
-     */
-    public HapUserDetails getInfo(ServerWebExchange exchange) {
-        String token = getToken(exchange);
-        Claims claims = parseAutograph(token);
-        String tokenKey = getTokenKey(claims);
-        return getTokenValue(tokenKey);
-    }
-
-    /**
-     * 获取用户id
-     */
-    public long getUid(ServerWebExchange exchange){
-        String token = getToken(exchange);
-        Claims claims = parseAutograph(token);
-        String tokenKey = getTokenKey(claims);
-        HapUserDetails userDetails = getTokenValue(tokenKey);
-        return userDetails.getUid();
-    }
-
-    /**
      * 用于springSecurity的退出控制器
      */
     public void delete(ServerWebExchange exchange){
@@ -148,7 +139,7 @@ public class TokenUtils {
         } else if (times > 0 && times < RedisKeys.MAX_LOGIN_TIMES) {
             intRedisTemplate.opsForValue().increment(login);
         } else {
-            throw new LoginForbiddenException();
+            throw new LoginForbiddenException("用户连续登录超过10次");
         }
     }
 
