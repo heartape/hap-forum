@@ -41,6 +41,9 @@ public class FeignConfig {
         }
     }
 
+    /**
+     * 在过滤器中请求openfeign
+     */
     @Bean
     @ConditionalOnMissingBean
     public HttpMessageConverters messageConverters(ObjectProvider<HttpMessageConverter<?>> converters) {

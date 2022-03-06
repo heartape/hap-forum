@@ -42,7 +42,7 @@ public class HapUserDetails implements UserDetails {
     public HapUserDetails(Visitor visitor) {
         this.loginTime = LocalDateTime.now();
         this.uid = visitor.getUid();
-        this.username = visitor.getUsername();
+        this.username = visitor.getEmail();
         this.nickname = visitor.getNickname();
         this.password = visitor.getPassword();
         this.avatar = visitor.getAvatar();

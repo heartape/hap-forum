@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 public interface OauthFeign {
 
     @GetMapping("/api/oauth/login/mail/password")
-    Result mailPasswordLogin(@RequestParam String username);
+    Result mailPasswordLogin(@RequestParam String email);
 
     @PostMapping("/api/oauth/login/mail/code")
     Result mailCodeLogin(@RequestBody LoginInfo loginInfo);

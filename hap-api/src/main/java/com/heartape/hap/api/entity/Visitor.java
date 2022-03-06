@@ -26,8 +26,11 @@ public class Visitor implements Serializable {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
 
-    @ApiModelProperty(value = "账户")
-    private String username;
+    @ApiModelProperty(value = "邮箱")
+    private String email;
+
+    @ApiModelProperty(value = "手机")
+    private String mobile;
 
     @ApiModelProperty(value = "密码")
     private String password;
@@ -40,12 +43,6 @@ public class Visitor implements Serializable {
     @ApiModelProperty(value = "角色")
     private String role;
 
-    @ApiModelProperty(value = "手机")
-    private String mobile;
-
-    @ApiModelProperty(value = "邮箱")
-    private String email;
-
 //    @JsonSerialize(using = LocalDateTimeSerializer.class)
 //    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
 //    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
@@ -53,15 +50,14 @@ public class Visitor implements Serializable {
     @ApiModelProperty(value = "创建时间")
     private LocalDateTime createTime;
 
-    public Visitor(Long uid, String username, String password, String nickname, String avatar, String role, String mobile, String email, LocalDateTime createTime) {
+    public Visitor(Long uid, String email, String mobile, String password, String nickname, String avatar, String role, LocalDateTime createTime) {
         this.uid = uid;
-        this.username = username;
+        this.email = email;
+        this.mobile = mobile;
         this.password = password;
         this.nickname = nickname;
         this.avatar = avatar;
         this.role = role;
-        this.mobile = mobile;
-        this.email = email;
         this.createTime = createTime;
     }
 }

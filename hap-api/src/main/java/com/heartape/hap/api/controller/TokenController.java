@@ -66,12 +66,12 @@ public class TokenController {
      * 用于gateway登陆时调用数据库查询用户信息
      */
     @GetMapping("/login/mail/password")
-    public Result mailPasswordLogin(String username) {
-        if (!"heartape@163.com".equals(username)) {
+    public Result mailPasswordLogin(String email) {
+        if (!"heartape@163.com".equals(email)) {
             throw new RuntimeException();
         }
         // 123456
-        Visitor visitor = new Visitor(1L,"heartape@163.com", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin","1234567890","heartape@163.com", LocalDateTime.now());
+        Visitor visitor = new Visitor(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin", LocalDateTime.now());
         return Result.success(visitor);
     }
 
