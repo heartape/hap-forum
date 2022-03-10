@@ -22,6 +22,7 @@ oss:
   callbackHost: hap.heartape.com
 token:
   secret: 1qweq2eq2wafawgf3
+  expireTime: 7
   header: hap-token
 code:
   expireTime: 60

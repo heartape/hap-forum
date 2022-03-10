@@ -4,9 +4,10 @@ import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import com.heartape.hap.api.entity.LoginCode;
 import com.heartape.hap.api.entity.RO.LoginCodeRO;
-import com.heartape.hap.oauth.entity.HapUserDetails;
+import com.heartape.hap.api.entity.HapUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,8 +19,11 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * token操作工具类
@@ -39,6 +43,9 @@ public class TokenUtils {
     @Value("${token.secret}")
     private String secret;
 
+    @Value("${token.expireTime}")
+    private Integer tokenExpireTime;
+
     /**请求头*/
     @Value("${token.header}")
     private String header;
@@ -50,6 +57,8 @@ public class TokenUtils {
     /** 令牌中的token对应的key */
     private final String TOKEN_KEY = "token_key";
     /** redis的code的key前缀 */
+    private final String TOKEN_KEY_HEADER = "hap.token:%s:string";
+    /** redis的code的key前缀 */
     private final String CODE_KEY_HEADER = "hap.code:%s:string";
 
     /**
@@ -58,7 +67,7 @@ public class TokenUtils {
     public LoginCode newCode() {
         String codeId = UUID.randomUUID().toString();
         // 创建图片验证码,定义图形验证码的长、宽、验证码字符数、干扰线宽度
-        ShearCaptcha shearCaptcha = CaptchaUtil.createShearCaptcha(100, 50, 4, 2);
+        ShearCaptcha shearCaptcha = CaptchaUtil.createShearCaptcha(80, 40, 4, 2);
         // base64格式前加上 data:image/jpg;base64,/
         String imageBase64Data = shearCaptcha.getImageBase64Data();
         String code = shearCaptcha.getCode();
@@ -77,6 +86,30 @@ public class TokenUtils {
     }
 
     /**
+     * 检查是否是正确的邮箱格式
+     */
+    public boolean checkMail(String mail) {
+        String format = "^[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$";
+        Pattern pattern = Pattern.compile(format);
+        Matcher matcher = pattern.matcher(mail);
+        return matcher.matches();
+    }
+
+    /**
+     * 给token签名
+     */
+    private String autograph(String uuid){
+        HashMap<String, Object> claims = new HashMap<>();
+        claims.put(TOKEN_KEY, uuid);
+        String token = Jwts
+                .builder()
+                .setClaims(claims)
+                .signWith(SignatureAlgorithm.HS512, secret)
+                .compact();
+        return token;
+    }
+
+    /**
      * 给token解签名
      */
     public Claims parseAutograph(String token) {
@@ -85,6 +118,25 @@ public class TokenUtils {
                 .setSigningKey(secret)
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    /**
+     * 创建token
+     */
+    public String create(HapUserDetails hapUserDetails){
+        String tokenKey = String.format(TOKEN_KEY_HEADER,UUID.randomUUID());
+        redisTemplate.opsForValue().set(tokenKey, hapUserDetails, tokenExpireTime, TimeUnit.DAYS);
+        return autograph(tokenKey);
+    }
+
+    /**
+     * 用于springSecurity的退出控制器
+     */
+    public void delete(HttpServletRequest httpServletRequest){
+        String token = getToken(httpServletRequest);
+        Claims claims = parseAutograph(token);
+        String tokenKey = getTokenKey(claims);
+        redisTemplate.delete(tokenKey);
     }
 
     public String getToken(HttpServletRequest httpServletRequest) {
@@ -108,8 +160,8 @@ public class TokenUtils {
     /**
      * 获取用户信息
      */
-    public HapUserDetails getUserDetails() {
-        String token = getToken(getRequest());
+    public HapUserDetails getUserDetails(String token) {
+        // String token = getToken(getRequest());
         Claims claims = parseAutograph(token);
         String tokenKey = getTokenKey(claims);
         return getTokenValue(tokenKey);

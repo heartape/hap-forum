@@ -3,9 +3,9 @@ package com.heartape.hap.api.controller;
 import com.heartape.hap.api.entity.LoginCode;
 import com.heartape.hap.api.entity.LoginForm;
 import com.heartape.hap.api.entity.RO.LoginCodeRO;
-import com.heartape.hap.api.entity.Visitor;
-import com.heartape.hap.api.entity.VisitorInfo;
-import com.heartape.hap.oauth.entity.HapUserDetails;
+import com.heartape.hap.api.entity.Creator;
+import com.heartape.hap.api.entity.CreatorInfo;
+import com.heartape.hap.api.entity.HapUserDetails;
 import com.heartape.hap.api.response.Result;
 import com.heartape.hap.api.utils.TokenUtils;
 import io.swagger.annotations.Api;
@@ -37,24 +37,32 @@ public class TokenController {
         return Result.success(check);
     }
 
+    @PostMapping("/token")
+    @ApiOperation("创建token")
+    public Result createToken(@RequestBody HapUserDetails userDetails) {
+        String token = tokenUtils.create(userDetails);
+        return Result.success(token);
+    }
+
     @GetMapping("/uid")
-    public Result uid() {
+    public Result uid(@RequestParam String token) {
         long uid = tokenUtils.getUid();
         return Result.success(uid);
     }
 
     @GetMapping("/token")
-    public Result token() {
-        HapUserDetails info = tokenUtils.getUserDetails();
+    @ApiOperation("获取token信息")
+    public Result token(@RequestParam String token) {
+        HapUserDetails info = tokenUtils.getUserDetails(token);
         return Result.success(info);
     }
 
     @GetMapping("/info")
-    public Result getInfo() {
-        HapUserDetails userDetails = tokenUtils.getUserDetails();
-        VisitorInfo visitorInfo = new VisitorInfo();
-        BeanUtils.copyProperties(userDetails,visitorInfo);
-        return Result.success(visitorInfo);
+    public Result getInfo(@RequestParam String token) {
+        HapUserDetails userDetails = tokenUtils.getUserDetails(token);
+        CreatorInfo creatorInfo = new CreatorInfo();
+        BeanUtils.copyProperties(userDetails, creatorInfo);
+        return Result.success(creatorInfo);
     }
 
     @PostMapping("/check")
@@ -71,8 +79,8 @@ public class TokenController {
             throw new RuntimeException();
         }
         // 123456
-        Visitor visitor = new Visitor(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin", LocalDateTime.now());
-        return Result.success(visitor);
+        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin", LocalDateTime.now());
+        return Result.success(creator);
     }
 
     @PostMapping("/login/mail/code")
