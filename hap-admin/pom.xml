@@ -103,12 +103,6 @@
             <version>2.8.9</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.aliyun.oss</groupId>
-            <artifactId>aliyun-sdk-oss</artifactId>
-            <version>3.13.2</version>
-        </dependency>
-
         <!--    spring-cloud-alibaba    -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
@@ -131,12 +125,6 @@
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
             <version>7.0.0.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.jsonwebtoken</groupId>
-            <artifactId>jjwt</artifactId>
-            <version>0.9.1</version>
         </dependency>
 
         <!--    swagger2    -->

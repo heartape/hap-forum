@@ -1,5 +1,7 @@
 server:
   port: 8080
+token:
+  header: hap-token
 spring:
   application:
     # 在注册中心的服务名
@@ -15,31 +17,30 @@ spring:
           # 开启从服务注册中心动态创建路由的功能，利用微服务名称进行路由
           enabled: true
       routes:
-        - id: heartape-security-exclude
+        - id: hap-api
           # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-security
+          uri: lb://hap-api
           # 断言,即条件判断,精确的路由放到前面
           predicates:
-            - Path=/security/check
-          filters:
+            - Path=/api/**
+          # filters:
             # 重写路径
             # - RewritePath=/(?<segment>.*),/$\{segment}
-            - RewritePath=/(?<segment>.*),/$\{segment}/refuse
-        - id: heartape-security
+        - id: hap-admin
           # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-security
+          uri: lb://hap-admin
           # 断言,即条件判断,精确的路由放到前面
           predicates:
-            - Path=/security/**
-          filters:
-            # 重写路径
-            # - RewritePath=/(?<segment>.*),/$\{segment}
-        - id: heartape-front
+            - Path=/admin/**
+          # filters:
+          # 重写路径
+          # - RewritePath=/(?<segment>.*),/$\{segment}
+        - id: hap-business
           # uri路由到哪个地址,lb负载均衡
-          uri: lb://heartape-front
+          uri: lb://hap-business
           # 断言,即条件判断,精确的路由放到前面
           predicates:
-            - Path=/front/**
-          filters:
+            - Path=/business/**
+          # filters:
           # 重写路径
           # - RewritePath=/(?<segment>.*),/$\{segment}

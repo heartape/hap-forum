@@ -1,0 +1,16 @@
+server:
+  port: 8083
+spring:
+  application:
+    # 在注册中心的服务名
+    name: hap-business
+  cloud:
+    nacos:
+      discovery:
+        # 启动的nacos的ip和端口
+        server-addr: 127.0.0.1:8848
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/hap
+    driverClassName: com.mysql.cj.jdbc.Driver

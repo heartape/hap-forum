@@ -14,9 +14,3 @@ spring:
     password: root
     url: jdbc:mysql://localhost:3306/hap
     driverClassName: com.mysql.cj.jdbc.Driver
-oss:
-  accessId: 1
-  accessKey: 1
-  bucket: oss-hap-test
-  proxy: https://hap.heartape.com/oss-hap-test
-  callbackHost: hap.heartape.com
