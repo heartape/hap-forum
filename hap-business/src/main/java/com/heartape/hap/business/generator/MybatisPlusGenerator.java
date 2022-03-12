@@ -24,18 +24,18 @@ public class MybatisPlusGenerator {
                     builder.parent("com.heartape.hap")
                             // todo:设置父包模块名
                             .moduleName("business")
-                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, dir + "/src/main/resource")); // 设置mapperXml生成路径
+                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, dir + "/hap-business/src/main/resource")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
                     builder
                             // todo:设置需要生成的表名
-                            .addInclude("article")
+                            .addInclude("article_0")
                             // todo:设置过滤表前缀
                             .addTablePrefix("t_", "c_")
                             .entityBuilder()
                             .superClass(BaseEntity.class)
                             .logicDeleteColumnName("status")
-                            .addSuperEntityColumns("created_by","created_time","updated_by","updated_time")
+                            .addSuperEntityColumns("status","created_by","created_time","updated_by","updated_time")
                             .idType(IdType.ASSIGN_ID)
                             .enableLombok().
                             enableTableFieldAnnotation();
