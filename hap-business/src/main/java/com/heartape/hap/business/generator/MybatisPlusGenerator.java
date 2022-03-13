@@ -24,7 +24,7 @@ public class MybatisPlusGenerator {
                     builder.parent("com.heartape.hap")
                             // todo:设置父包模块名
                             .moduleName("business")
-                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, dir + "/hap-business/src/main/resource")); // 设置mapperXml生成路径
+                            .pathInfo(Collections.singletonMap(OutputFile.mapperXml, dir + "/hap-business/src/main/resources/mapper")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
                     builder
@@ -34,7 +34,6 @@ public class MybatisPlusGenerator {
                             .addTablePrefix("t_", "c_")
                             .entityBuilder()
                             .superClass(BaseEntity.class)
-                            .logicDeleteColumnName("status")
                             .addSuperEntityColumns("status","created_by","created_time","updated_by","updated_time")
                             .idType(IdType.ASSIGN_ID)
                             .enableLombok().

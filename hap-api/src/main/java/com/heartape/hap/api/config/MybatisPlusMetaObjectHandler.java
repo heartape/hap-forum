@@ -18,6 +18,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
     public void insertFill(MetaObject metaObject) {
         this.strictInsertFill(metaObject, "createdBy",Long.class, tokenUtils.getUid());
         this.strictInsertFill(metaObject, "createdTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "updatedBy",Long.class, tokenUtils.getUid());
+        this.strictInsertFill(metaObject, "updatedTime", LocalDateTime.class, LocalDateTime.now());
     }
 
     @Override
