@@ -37,8 +37,4 @@ public class DiscussCommentChildren extends BaseEntity {
     @TableField("content")
     private String content;
 
-    @TableField("publish_time")
-    private LocalDateTime publishTime;
-
-
 }

@@ -1,9 +1,13 @@
 package com.heartape.hap.business.controller;
 
 
-import org.springframework.web.bind.annotation.RequestMapping;
+import com.heartape.hap.business.entity.LinkGuide;
+import com.heartape.hap.business.response.Result;
+import com.heartape.hap.business.service.ILinkGuideService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-import org.springframework.stereotype.Controller;
+import java.util.List;
 
 /**
  * <p>
@@ -13,8 +17,26 @@ import org.springframework.stereotype.Controller;
  * @author heartape
  * @since 2022-03-13
  */
-@Controller
+@RestController
 @RequestMapping("/business/link-guide")
 public class LinkGuideController {
 
+    @Autowired
+    private ILinkGuideService linkGuideService;
+
+    @PostMapping
+    public Result create() {
+        LinkGuide linkGuide = new LinkGuide();
+        linkGuide.setTitle("erfwe");
+        linkGuide.setPath("12312");
+        linkGuide.setTopping(false);
+        linkGuideService.save(linkGuide);
+        return Result.success();
+    }
+
+    @GetMapping
+    public Result list(@RequestParam Integer page, @RequestParam Integer size) {
+        List<LinkGuide> linkGuides = linkGuideService.showList(page, size);
+        return Result.success(linkGuides);
+    }
 }

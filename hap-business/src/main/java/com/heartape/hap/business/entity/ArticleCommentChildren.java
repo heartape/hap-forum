@@ -3,7 +3,6 @@ package com.heartape.hap.business.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -33,9 +32,5 @@ public class ArticleCommentChildren extends BaseEntity {
 
     @TableField("content")
     private String content;
-
-    @TableField("publish_time")
-    private LocalDateTime publishTime;
-
 
 }

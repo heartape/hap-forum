@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-import java.time.LocalDateTime;
 import java.util.List;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -40,10 +39,7 @@ public class Article extends BaseEntity {
     private List<Long> labelId;
 
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
-    @TableField(value = "top",typeHandler = JacksonTypeHandler.class)
-    private Top top;
-
-    @TableField("publish_time")
-    private LocalDateTime publishTime;
+    @TableField(typeHandler = JacksonTypeHandler.class)
+    private Topping topping;
 
 }
