@@ -3,10 +3,9 @@ package com.heartape.hap.business.entity;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.time.LocalDateTime;
-import java.util.List;
 
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -17,27 +16,23 @@ import lombok.EqualsAndHashCode;
  * </p>
  *
  * @author heartape
- * @since 2022-03-12
+ * @since 2022-03-13
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class Article extends BaseEntity {
+public class ArticleComment extends BaseEntity {
 
-    @TableId(value = "article_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "comment_id", type = IdType.ASSIGN_ID)
+    private Long commentId;
+
+    @TableField("article_id")
     private Long articleId;
-
-    @TableField("title")
-    private String title;
-
-    @TableField("content")
-    private String content;
 
     @TableField("uid")
     private Long uid;
 
-    @ApiModelProperty("多个labelId组成的jsonArray")
-    @TableField(value = "label_id",typeHandler = JacksonTypeHandler.class)
-    private List<Long> labelId;
+    @TableField("content")
+    private String content;
 
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
     @TableField(value = "top",typeHandler = JacksonTypeHandler.class)
@@ -45,5 +40,6 @@ public class Article extends BaseEntity {
 
     @TableField("publish_time")
     private LocalDateTime publishTime;
+
 
 }

@@ -1,6 +1,6 @@
 package com.heartape.hap.business.service;
 
-import com.heartape.hap.business.entity.Article;
+import com.heartape.hap.business.entity.TopicDiscuss;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author heartape
  * @since 2022-03-13
  */
-public interface IArticleService extends IService<Article> {
+public interface ITopicDiscussService extends IService<TopicDiscuss> {
 
 }

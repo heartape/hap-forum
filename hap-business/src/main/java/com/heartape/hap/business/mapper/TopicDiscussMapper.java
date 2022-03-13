@@ -1,6 +1,6 @@
 package com.heartape.hap.business.mapper;
 
-import com.heartape.hap.business.entity.Article;
+import com.heartape.hap.business.entity.TopicDiscuss;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author heartape
  * @since 2022-03-13
  */
-public interface ArticleMapper extends BaseMapper<Article> {
+public interface TopicDiscussMapper extends BaseMapper<TopicDiscuss> {
 
 }
