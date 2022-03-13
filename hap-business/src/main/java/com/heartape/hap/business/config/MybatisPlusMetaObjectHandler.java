@@ -27,8 +27,8 @@ public class MybatisPlusMetaObjectHandler implements MetaObjectHandler {
 
     @Override
     public void updateFill(MetaObject metaObject) {
-        this.strictUpdateFill(metaObject,"updatedBy",Long.class, (Long) tokenFeignService.getUid().getData());
-        this.strictUpdateFill(metaObject,"updatedBy",Long.class, 112415142141L);
+//        this.strictUpdateFill(metaObject,"updatedBy",Long.class, (Long) tokenFeignService.getUid().getData());
+        this.strictUpdateFill(metaObject,"updatedBy",Long.class, 112314151231L);
         this.strictUpdateFill(metaObject,"updatedTime", LocalDateTime.class, LocalDateTime.now());
     }
 }
