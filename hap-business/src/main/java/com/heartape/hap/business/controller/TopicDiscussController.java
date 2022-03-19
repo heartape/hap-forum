@@ -1,9 +1,7 @@
 package com.heartape.hap.business.controller;
 
-
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <p>
@@ -13,8 +11,8 @@ import org.springframework.stereotype.Controller;
  * @author heartape
  * @since 2022-03-13
  */
-@Controller
-@RequestMapping("/business/topic-discuss")
+@RestController
+@RequestMapping("/business/topic/discuss")
 public class TopicDiscussController {
 
 }

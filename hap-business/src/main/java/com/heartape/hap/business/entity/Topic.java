@@ -1,5 +1,6 @@
 package com.heartape.hap.business.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -26,13 +27,26 @@ public class Topic extends BaseEntity {
     @TableId(value = "topic_id", type = IdType.ASSIGN_ID)
     private Long topicId;
 
-    @TableField("title")
+    @TableField(fill = FieldFill.INSERT)
+    private Long uid;
+
+    private String avatar;
+
+    private String nickname;
+
+    private String profile;
+
     private String title;
+
+    @TableField("is_picture")
+    private Boolean isPicture;
+
+    @TableField("main_picture")
+    private String mainPicture;
 
     @TableField("simple_description")
     private String simpleDescription;
 
-    @TableField("description")
     private String description;
 
     @TableField("is_long")

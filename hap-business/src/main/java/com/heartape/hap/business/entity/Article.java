@@ -1,12 +1,9 @@
 package com.heartape.hap.business.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import java.util.List;
 
-import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,23 +19,43 @@ import lombok.EqualsAndHashCode;
 @Data
 public class Article extends BaseEntity {
 
-    @TableId(value = "article_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "article_id", type = IdType.AUTO)
     private Long articleId;
 
-    @TableField("title")
-    private String title;
-
-    @TableField("content")
-    private String content;
-
-    @TableField("uid")
+    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @ApiModelProperty("多个labelId组成的jsonArray")
-    @TableField(value = "label_id",typeHandler = JacksonTypeHandler.class)
+    @TableField(fill = FieldFill.INSERT)
+    private String avatar;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String nickname;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String profile;
+
+    @TableField(value = "is_picture", updateStrategy = FieldStrategy.NEVER)
+    private Boolean isPicture;
+
+    @TableField(value = "main_picture", updateStrategy = FieldStrategy.NEVER)
+    private String mainPicture;
+
+    @TableField(updateStrategy = FieldStrategy.NEVER)
+    private String title;
+
+    @TableField(updateStrategy = FieldStrategy.NEVER)
+    private String content;
+
+    @TableField(value = "simple_content", updateStrategy = FieldStrategy.NEVER)
+    private String simpleContent;
+
+    @TableField(value = "label_id",typeHandler = JacksonTypeHandler.class, updateStrategy = FieldStrategy.NEVER)
     private List<Long> labelId;
 
-    @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
+    @TableField(exist = false)
+    private List<Label> label;
+
+    @Deprecated
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Topping topping;
 

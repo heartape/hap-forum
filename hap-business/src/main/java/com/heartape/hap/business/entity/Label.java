@@ -22,30 +22,27 @@ import lombok.EqualsAndHashCode;
 @Data
 public class Label extends BaseEntity {
 
-    @TableId(value = "label_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "label_id", type = IdType.AUTO)
     private Long labelId;
 
     @ApiModelProperty("最多3级")
-    @TableField("level")
     private Long level;
 
     @TableField(value = "parent_id",typeHandler = JacksonTypeHandler.class)
     private List<Long> parentId;
 
-    @TableField("name")
     private String name;
+
+    @TableField("main_picture")
+    private String mainPicture;
 
     @TableField("simple_introduce")
     private String simpleIntroduce;
 
-    @TableField("introduce")
     private String introduce;
 
     @ApiModelProperty("介绍长度是否超过100个字符")
     @TableField("is_long")
     private Boolean isLong;
-
-    @TableField("picture")
-    private String picture;
 
 }

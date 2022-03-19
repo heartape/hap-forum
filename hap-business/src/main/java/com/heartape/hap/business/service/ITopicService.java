@@ -2,6 +2,7 @@ package com.heartape.hap.business.service;
 
 import com.heartape.hap.business.entity.Topic;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.heartape.hap.business.entity.ro.TopicRO;
 
 /**
  * <p>
@@ -13,4 +14,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ITopicService extends IService<Topic> {
 
+    /**
+     * 创建话题
+     */
+    void create(TopicRO topic);
 }

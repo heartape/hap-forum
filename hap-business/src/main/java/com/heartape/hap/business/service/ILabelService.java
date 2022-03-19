@@ -2,6 +2,7 @@ package com.heartape.hap.business.service;
 
 import com.heartape.hap.business.entity.Label;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.heartape.hap.business.entity.ro.LabelRO;
 
 /**
  * <p>
@@ -13,4 +14,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface ILabelService extends IService<Label> {
 
+    /**
+     * 创建标签
+     */
+    void create(LabelRO label);
 }

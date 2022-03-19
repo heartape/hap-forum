@@ -1,5 +1,6 @@
 package com.heartape.hap.business.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -17,7 +18,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class DiscussCommentChildren extends BaseEntity {
+public class DiscussCommentChild extends BaseEntity {
 
     @TableId(value = "comment_id", type = IdType.ASSIGN_ID)
     private Long commentId;
@@ -31,10 +32,19 @@ public class DiscussCommentChildren extends BaseEntity {
     @TableField("parent_id")
     private Long parentId;
 
-    @TableField("uid")
+    @TableField(fill = FieldFill.INSERT)
     private Long uid;
 
-    @TableField("content")
+    private String avatar;
+
+    private String nickname;
+
+    @TableField("child_to_child")
+    private Boolean childToChild;
+
+    @TableField("child_target")
+    private Long childTarget;
+
     private String content;
 
 }

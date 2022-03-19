@@ -1,6 +1,6 @@
 package com.heartape.hap.business.service;
 
-import com.heartape.hap.business.entity.DiscussCommentChildren;
+import com.heartape.hap.business.entity.DiscussCommentChild;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -11,6 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author heartape
  * @since 2022-03-13
  */
-public interface IDiscussCommentChildrenService extends IService<DiscussCommentChildren> {
+public interface IDiscussCommentChildService extends IService<DiscussCommentChild> {
 
 }

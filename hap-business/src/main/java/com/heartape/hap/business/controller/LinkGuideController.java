@@ -1,6 +1,5 @@
 package com.heartape.hap.business.controller;
 
-
 import com.heartape.hap.business.entity.LinkGuide;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.ILinkGuideService;
@@ -23,16 +22,6 @@ public class LinkGuideController {
 
     @Autowired
     private ILinkGuideService linkGuideService;
-
-    @PostMapping
-    public Result create() {
-        LinkGuide linkGuide = new LinkGuide();
-        linkGuide.setTitle("erfwe");
-        linkGuide.setPath("12312");
-        linkGuide.setTopping(false);
-        linkGuideService.save(linkGuide);
-        return Result.success();
-    }
 
     @GetMapping
     public Result list(@RequestParam Integer page, @RequestParam Integer size) {

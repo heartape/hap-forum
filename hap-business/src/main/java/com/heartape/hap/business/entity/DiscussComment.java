@@ -1,5 +1,6 @@
 package com.heartape.hap.business.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -30,10 +31,13 @@ public class DiscussComment extends BaseEntity {
     @TableField("discuss_id")
     private Long discussId;
 
-    @TableField("uid")
+    @TableField(fill = FieldFill.INSERT)
     private Long uid;
 
-    @TableField("content")
+    private String avatar;
+
+    private String nickname;
+
     private String content;
 
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")

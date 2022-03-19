@@ -79,7 +79,7 @@ public class TokenController {
             throw new RuntimeException();
         }
         // 123456
-        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin", LocalDateTime.now());
+        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin");
         return Result.success(creator);
     }
 
