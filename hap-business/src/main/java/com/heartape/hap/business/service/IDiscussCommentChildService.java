@@ -1,7 +1,10 @@
 package com.heartape.hap.business.service;
 
+import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.DiscussCommentChild;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
+import com.heartape.hap.business.entity.dto.DiscussCommentChildDTO;
 
 /**
  * <p>
@@ -13,4 +16,9 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface IDiscussCommentChildService extends IService<DiscussCommentChild> {
 
+    void create(DiscussCommentChildDTO discussCommentChildDTO);
+
+    PageInfo<DiscussCommentChildBO> list(Long commentId, Integer page, Integer size);
+
+    void remove(Long commentId);
 }

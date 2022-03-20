@@ -1,8 +1,18 @@
 package com.heartape.hap.business.controller;
 
-
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.entity.bo.ArticleCommentChildBO;
+import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
+import com.heartape.hap.business.entity.dto.ArticleCommentChildDTO;
+import com.heartape.hap.business.entity.dto.DiscussCommentChildDTO;
+import com.heartape.hap.business.entity.ro.ArticleCommentChildRO;
+import com.heartape.hap.business.entity.ro.DiscussCommentChildRO;
+import com.heartape.hap.business.response.Result;
+import com.heartape.hap.business.service.IArticleCommentChildService;
+import com.heartape.hap.business.service.IDiscussCommentChildService;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -13,7 +23,29 @@ import org.springframework.web.bind.annotation.RestController;
  * @since 2022-03-13
  */
 @RestController
-@RequestMapping("/business/topic/discuss/comment/children")
+@RequestMapping("/business/topic/discuss/comment/child")
 public class DiscussCommentChildController {
 
+    @Autowired
+    private IDiscussCommentChildService discussCommentChildService;
+
+    @PostMapping
+    public Result create(@RequestBody DiscussCommentChildRO discussCommentChildRO) {
+        DiscussCommentChildDTO discussCommentChildDTO = new DiscussCommentChildDTO();
+        BeanUtils.copyProperties(discussCommentChildRO, discussCommentChildDTO);
+        discussCommentChildService.create(discussCommentChildDTO);
+        return Result.success();
+    }
+
+    @GetMapping("/list")
+    public Result list(@RequestParam Long commentId, @RequestParam Integer page, @RequestParam Integer size) {
+        PageInfo<DiscussCommentChildBO> discussCommentChild = discussCommentChildService.list(commentId, page, size);
+        return Result.success(discussCommentChild);
+    }
+
+    @DeleteMapping
+    public Result remove(@RequestParam Long commentId) {
+        discussCommentChildService.remove(commentId);
+        return Result.success();
+    }
 }

@@ -1,9 +1,6 @@
 package com.heartape.hap.business.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 
 import java.util.List;
@@ -24,29 +21,33 @@ import lombok.EqualsAndHashCode;
 @Data
 public class Topic extends BaseEntity {
 
-    @TableId(value = "topic_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "topic_id", type = IdType.AUTO)
     private Long topicId;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
+    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
+    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
+    @TableField(fill = FieldFill.INSERT)
     private String profile;
 
     private String title;
 
-    @TableField("is_picture")
+    @TableField(value = "is_picture", updateStrategy = FieldStrategy.NEVER)
     private Boolean isPicture;
 
-    @TableField("main_picture")
+    @TableField(value = "main_picture", updateStrategy = FieldStrategy.NEVER)
     private String mainPicture;
 
-    @TableField("simple_description")
+    @TableField(value = "simple_description", updateStrategy = FieldStrategy.NEVER)
     private String simpleDescription;
 
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private String description;
 
     @TableField("is_long")
@@ -54,6 +55,9 @@ public class Topic extends BaseEntity {
 
     @TableField(value = "label_id", typeHandler = JacksonTypeHandler.class)
     private List<Long> labelId;
+
+    @TableField(exist = false)
+    private List<Label> label;
 
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
     @TableField(typeHandler = JacksonTypeHandler.class)

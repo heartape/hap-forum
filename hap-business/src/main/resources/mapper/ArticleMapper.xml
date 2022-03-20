@@ -8,8 +8,6 @@
         <result column="avatar" property="avatar" />
         <result column="nickname" property="nickname" />
         <result column="profile" property="profile" />
-        <result column="is_picture" property="isPicture" />
-        <result column="main_picture" property="mainPicture" />
         <result column="title" property="title" />
         <result column="content" property="content" />
         <result column="simple_content" property="simpleContent" />
@@ -20,7 +18,7 @@
         </collection>
     </resultMap>
     <select id="selectOneLabel" resultMap="articleWithLabel">
-        select t1.article_id,t1.uid,t1.avatar,t1.nickname,t1.profile,t1.is_picture,t1.main_picture,t1.title,t1.content,
+        select t1.article_id,t1.uid,t1.avatar,t1.nickname,t1.profile,t1.title,t1.content,
                t1.simple_content,t1.created_time,t2.label_id,t2.name
         from article t1
         left join label t2

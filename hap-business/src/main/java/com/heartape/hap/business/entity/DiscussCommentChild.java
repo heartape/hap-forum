@@ -1,9 +1,7 @@
 package com.heartape.hap.business.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
+
 import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -20,30 +18,35 @@ import lombok.EqualsAndHashCode;
 @Data
 public class DiscussCommentChild extends BaseEntity {
 
-    @TableId(value = "comment_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "comment_id", type = IdType.AUTO)
     private Long commentId;
 
-    @TableField("topic_id")
+    @TableField(value = "topic_id", updateStrategy = FieldStrategy.NEVER)
     private Long topicId;
 
-    @TableField("discuss_id")
+    @TableField(value = "discuss_id", updateStrategy = FieldStrategy.NEVER)
     private Long discussId;
 
-    @TableField("parent_id")
+    @TableField(value = "parent_id", updateStrategy = FieldStrategy.NEVER)
     private Long parentId;
 
-    @TableField(fill = FieldFill.INSERT)
+    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
+    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
+    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
-    @TableField("child_to_child")
+    @TableField(value = "child_to_child", updateStrategy = FieldStrategy.NEVER)
     private Boolean childToChild;
 
-    @TableField("child_target")
+    @TableField(value = "child_target", updateStrategy = FieldStrategy.NEVER)
     private Long childTarget;
+
+    @TableField("child_target_name")
+    private String childTargetName;
 
     private String content;
 

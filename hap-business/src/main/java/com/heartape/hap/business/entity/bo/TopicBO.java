@@ -14,30 +14,33 @@ import java.util.List;
  * </p>
  *
  * @author heartape
- * @since 2022-03-12
+ * @since 2022-03-13
  */
 @Data
-public class ArticleBO {
+public class TopicBO {
 
     @JsonSerialize(using = ToStringSerializer.class)
-    private Long articleId;
+    private Long topicId;
 
     @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
+
+    private String avatar;
 
     private String nickname;
 
     private String profile;
 
-    private String avatar;
-
     private String title;
 
-    private String content;
+    private String simpleDescription;
+
+    private String description;
+
+    private Boolean isLong;
 
     private List<LabelBO> label;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
-
 }

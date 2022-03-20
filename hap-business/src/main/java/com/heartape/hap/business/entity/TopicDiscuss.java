@@ -1,9 +1,6 @@
 package com.heartape.hap.business.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.*;
 
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import io.swagger.annotations.ApiModelProperty;
@@ -22,20 +19,23 @@ import lombok.EqualsAndHashCode;
 @Data
 public class TopicDiscuss extends BaseEntity {
 
-    @TableId(value = "discuss_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "discuss_id", type = IdType.AUTO)
     private Long discussId;
-
-    @TableField(fill = FieldFill.INSERT)
-    private Long uid;
-
-    private String avatar;
-
-    private String nickname;
-
-    private String profile;
 
     @TableField("topic_id")
     private Long topicId;
+
+    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    private Long uid;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String avatar;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String nickname;
+
+    @TableField(fill = FieldFill.INSERT)
+    private String profile;
 
     private String content;
 

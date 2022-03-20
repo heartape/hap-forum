@@ -65,6 +65,7 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
 
     @Override
     public PageInfo<ArticleCommentBO> list(Long articleId, Integer page, Integer size) {
+        // 检查分页是否超出范围
         Long count = baseMapper.selectCount(new QueryWrapper<ArticleComment>().eq("article_id", articleId));
         List<ArticleComment> comments = new ArrayList<>();
         if (count.intValue() > (page-1)*size) {

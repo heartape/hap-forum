@@ -1,8 +1,8 @@
 package com.heartape.hap.business.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.entity.bo.ArticleSimpleBO;
 import com.heartape.hap.business.entity.bo.ArticleBO;
-import com.heartape.hap.business.entity.bo.ArticleDetailBO;
 import com.heartape.hap.business.entity.dto.ArticleDTO;
 import com.heartape.hap.business.entity.ro.ArticleRO;
 import com.heartape.hap.business.response.Result;
@@ -36,19 +36,19 @@ public class ArticleController {
 
     @GetMapping("/list")
     public Result list(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleBO> articles = articleService.list(page, size);
+        PageInfo<ArticleSimpleBO> articles = articleService.list(page, size);
         return Result.success(articles);
     }
 
     @GetMapping("/list/creator")
     public Result creatorList(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleBO> articles = articleService.creatorList(page, size);
+        PageInfo<ArticleSimpleBO> articles = articleService.creatorList(page, size);
         return Result.success(articles);
     }
 
     @GetMapping
     public Result detail(@RequestParam Long articleId) {
-        ArticleDetailBO article = articleService.detail(articleId);
+        ArticleBO article = articleService.detail(articleId);
         return Result.success(article);
     }
 

@@ -8,12 +8,12 @@ import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
 import com.heartape.hap.business.entity.bo.*;
 import com.heartape.hap.business.entity.dto.ArticleDTO;
+import com.heartape.hap.business.exception.ParamIsInvalidException;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
-import com.heartape.hap.business.service.IArticleCommentService;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.utils.AssertUtils;
@@ -39,9 +39,6 @@ import java.util.stream.Collectors;
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements IArticleService {
 
     @Autowired
-    private IArticleCommentService articleCommentService;
-
-    @Autowired
     private ArticleCommentMapper articleCommentMapper;
 
     @Autowired
@@ -63,64 +60,65 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String content = article.getContent();
         String s = Jsoup.clean(content, Safelist.none());
         String ignoreBlank = stringTransformUtils.IgnoreBlank(s);
+        int length = ignoreBlank.length();
+        assertUtils.businessState(length > 100, new ParamIsInvalidException(String.format("文章长度低于指定范围,长度:%s,内容:%s", length, ignoreBlank)));
         String simpleContent = ignoreBlank.substring(0, 100);
         article.setSimpleContent(simpleContent);
         this.baseMapper.insert(article);
     }
 
     @Override
-    public PageInfo<ArticleBO> list(Integer page, Integer size) {
+    public PageInfo<ArticleSimpleBO> list(Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<Article> list = query().list();
+        List<Article> list = query().select("article_id","is_picture","main_picture","title","simple_content","created_time")
+                .orderByDesc("created_time").list();
         PageInfo<Article> pageInfo = PageInfo.of(list);
 
-        List<ArticleBO> collect = list.stream().map(article -> {
-            ArticleBO articleBO = new ArticleBO();
-            BeanUtils.copyProperties(article, articleBO);
-            return articleBO;
+        List<ArticleSimpleBO> collect = list.stream().map(article -> {
+            ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
+            BeanUtils.copyProperties(article, articleSimpleBO);
+            return articleSimpleBO;
         }).collect(Collectors.toList());
 
-        PageInfo<ArticleBO> copyPageInfo = PageInfo.emptyPageInfo();
+        PageInfo<ArticleSimpleBO> copyPageInfo = PageInfo.emptyPageInfo();
         BeanUtils.copyProperties(pageInfo, copyPageInfo);
         copyPageInfo.setList(collect);
         return copyPageInfo;
     }
 
     @Override
-    public PageInfo<ArticleBO> creatorList(Integer page, Integer size) {
+    public PageInfo<ArticleSimpleBO> creatorList(Integer page, Integer size) {
         long uid = tokenFeignService.getUid();
         PageHelper.startPage(page, size);
-        List<Article> list = query().eq("uid",uid).orderByDesc("created_time").list();
+        List<Article> list = query().select("article_id","is_picture","main_picture","title","simple_content","created_time")
+                .eq("uid",uid).orderByDesc("created_time").list();
         PageInfo<Article> pageInfo = PageInfo.of(list);
 
-        List<ArticleBO> collect = list.stream().map(article -> {
-            ArticleBO articleBO = new ArticleBO();
-            BeanUtils.copyProperties(article, articleBO);
-            return articleBO;
+        List<ArticleSimpleBO> collect = list.stream().map(article -> {
+            ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
+            BeanUtils.copyProperties(article, articleSimpleBO);
+            return articleSimpleBO;
         }).collect(Collectors.toList());
 
-        PageInfo<ArticleBO> copyPageInfo = PageInfo.emptyPageInfo();
+        PageInfo<ArticleSimpleBO> copyPageInfo = PageInfo.emptyPageInfo();
         BeanUtils.copyProperties(pageInfo, copyPageInfo);
         copyPageInfo.setList(collect);
         return copyPageInfo;
     }
 
     @Override
-    public ArticleDetailBO detail(Long articleId) {
+    public ArticleBO detail(Long articleId) {
         Article article = this.baseMapper.selectOneLabel(articleId);
-        ArticleDetailBO articleDetailBO = new ArticleDetailBO();
-        BeanUtils.copyProperties(article, articleDetailBO);
+        ArticleBO articleBO = new ArticleBO();
+        BeanUtils.copyProperties(article, articleBO);
         // 转换label
         List<LabelBO> label = article.getLabel().stream().map(item -> {
             LabelBO labelBO = new LabelBO();
             BeanUtils.copyProperties(item, labelBO);
             return labelBO;
         }).collect(Collectors.toList());
-        articleDetailBO.setLabel(label);
-
-        PageInfo<ArticleCommentBO> commentBO = articleCommentService.list(articleId, 1, 5);
-        articleDetailBO.setComment(commentBO);
-        return articleDetailBO;
+        articleBO.setLabel(label);
+        return articleBO;
     }
 
     @Override
