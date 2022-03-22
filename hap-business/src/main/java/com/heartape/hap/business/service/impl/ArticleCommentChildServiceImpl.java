@@ -3,7 +3,6 @@ package com.heartape.hap.business.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.heartape.hap.business.entity.Article;
 import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
 import com.heartape.hap.business.entity.bo.ArticleCommentChildBO;
@@ -48,14 +47,12 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
     private TokenFeignServiceImpl tokenFeignService;
 
     @Override
-    public void publish(ArticleCommentChildDTO articleCommentChildDTO) {
-        Long articleId = articleCommentChildDTO.getArticleId();
-        Long count1 = articleMapper.selectCount(new QueryWrapper<Article>().eq("article_id", articleId));
-        assertUtils.businessState(count1 == 1, new RelyDataNotExistedException(String.format("ArticleCommentChildren所依赖的Article:id=%s不存在", articleId)));
+    public void create(ArticleCommentChildDTO articleCommentChildDTO) {
 
+        Long articleId = articleCommentChildDTO.getArticleId();
         Long parentId = articleCommentChildDTO.getParentId();
-        Long count2 = articleCommentMapper.selectCount(new QueryWrapper<ArticleComment>().eq("comment_id", parentId));
-        assertUtils.businessState(count2 == 1, new RelyDataNotExistedException(String.format("ArticleCommentChildren所依赖的ArticleComment:id=%s不存在", parentId)));
+        Long count = articleCommentMapper.selectCount(new QueryWrapper<ArticleComment>().eq("article_id", articleId).eq("comment_id", parentId));
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChildren所依赖的Article:id=%s或ArticleComment:id=%s不存在", articleId, parentId)));
 
         ArticleCommentChild articleCommentChild = new ArticleCommentChild();
         BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
@@ -84,6 +81,6 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
     public void remove(Long commentId) {
         long uid = tokenFeignService.getUid();
         int delete = baseMapper.delete(new QueryWrapper<ArticleCommentChild>().eq("comment_id", commentId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有删除权限,commentId:%s,uid:%s", commentId, uid)));
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有ArticleCommentChild删除权限,commentId:%s,uid:%s", commentId, uid)));
     }
 }

@@ -18,7 +18,7 @@ import lombok.EqualsAndHashCode;
 @Data
 public class LinkGuide extends BaseEntity {
 
-    @TableId(value = "guide_id", type = IdType.ASSIGN_ID)
+    @TableId(value = "guide_id", type = IdType.AUTO)
     private Long guideId;
 
     private String title;

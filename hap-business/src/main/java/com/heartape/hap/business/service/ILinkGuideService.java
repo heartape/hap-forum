@@ -19,4 +19,6 @@ public interface ILinkGuideService extends IService<LinkGuide> {
      * 查询链接导航列表
      */
     List<LinkGuide> showList(Integer page, Integer size);
+
+    void create();
 }

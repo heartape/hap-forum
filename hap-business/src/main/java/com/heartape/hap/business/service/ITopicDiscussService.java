@@ -5,7 +5,6 @@ import com.heartape.hap.business.entity.TopicDiscuss;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.business.entity.bo.TopicDiscussBO;
 import com.heartape.hap.business.entity.dto.TopicDiscussDTO;
-import com.heartape.hap.business.entity.ro.TopicDiscussRO;
 
 /**
  * <p>

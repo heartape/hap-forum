@@ -1,12 +1,12 @@
 package com.heartape.hap.business.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.Article;
 import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
 import com.heartape.hap.business.entity.bo.ArticleCommentBO;
-import com.heartape.hap.business.entity.bo.ArticleCommentChildBO;
 import com.heartape.hap.business.entity.dto.ArticleCommentDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
@@ -18,11 +18,11 @@ import com.heartape.hap.business.service.IArticleCommentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.utils.AssertUtils;
 import com.heartape.hap.business.utils.SqlUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper, ArticleComment> implements IArticleCommentService {
 
     @Autowired
@@ -53,7 +54,7 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     private TokenFeignServiceImpl tokenFeignService;
 
     @Override
-    public void publish(ArticleCommentDTO articleCommentDTO) {
+    public void create(ArticleCommentDTO articleCommentDTO) {
         Long articleId = articleCommentDTO.getArticleId();
         Long count = articleMapper.selectCount(new QueryWrapper<Article>().eq("article_id", articleId));
         assertUtils.businessState(count != 1, new RelyDataNotExistedException(String.format("ArticleComment所依赖的Article:id=%s不存在", articleId)));
@@ -65,25 +66,19 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
 
     @Override
     public PageInfo<ArticleCommentBO> list(Long articleId, Integer page, Integer size) {
-        // 检查分页是否超出范围
-        Long count = baseMapper.selectCount(new QueryWrapper<ArticleComment>().eq("article_id", articleId));
-        List<ArticleComment> comments = new ArrayList<>();
-        if (count.intValue() > (page-1)*size) {
-            comments = baseMapper.selectTreeList(articleId, page, size);
-        }
-        List<ArticleCommentBO> commentBOs = comments.stream().map(comment -> {
+        PageHelper.startPage(page, size);
+        List<ArticleComment> articleComments = query().list();
+        PageInfo<ArticleComment> pageInfo = PageInfo.of(articleComments);
+        PageInfo<ArticleCommentBO> boPageInfo = new PageInfo<>();
+        BeanUtils.copyProperties(pageInfo, boPageInfo);
+        List<ArticleCommentBO> commentBOs = articleComments.stream().map(comment -> {
             ArticleCommentBO articleCommentBO = new ArticleCommentBO();
             BeanUtils.copyProperties(comment, articleCommentBO);
-            // 转换children
-            List<ArticleCommentChildBO> children = comment.getChildren().stream().map(child -> {
-                ArticleCommentChildBO childBO = new ArticleCommentChildBO();
-                BeanUtils.copyProperties(child, childBO);
-                return childBO;
-            }).collect(Collectors.toList());
-            articleCommentBO.setChildren(children);
+            // todo: 获取高热度评论
             return articleCommentBO;
         }).collect(Collectors.toList());
-        return sqlUtils.assemblePageInfo(commentBOs, count, page, size);
+        boPageInfo.setList(commentBOs);
+        return boPageInfo;
     }
 
     @Override

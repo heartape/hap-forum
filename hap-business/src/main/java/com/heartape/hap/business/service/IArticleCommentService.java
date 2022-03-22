@@ -19,7 +19,7 @@ public interface IArticleCommentService extends IService<ArticleComment> {
     /**
      * 发布父评论
      */
-    void publish(ArticleCommentDTO articleCommentDTO);
+    void create(ArticleCommentDTO articleCommentDTO);
 
     /**
      * 父评论列表查询

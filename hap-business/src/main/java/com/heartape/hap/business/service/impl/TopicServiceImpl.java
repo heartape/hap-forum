@@ -10,7 +10,7 @@ import com.heartape.hap.business.entity.TopicDiscuss;
 import com.heartape.hap.business.entity.bo.LabelBO;
 import com.heartape.hap.business.entity.bo.TopicBO;
 import com.heartape.hap.business.entity.bo.TopicSimpleBO;
-import com.heartape.hap.business.entity.ro.TopicRO;
+import com.heartape.hap.business.entity.dto.TopicDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
@@ -58,9 +58,9 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
     private AssertUtils assertUtils;
 
     @Override
-    public void create(TopicRO topicRO) {
+    public void create(TopicDTO topicDTO) {
         Topic topic = new Topic();
-        BeanUtils.copyProperties(topicRO, topic);
+        BeanUtils.copyProperties(topicDTO, topic);
         String description = topic.getDescription();
         String ignoreBlank = stringTransformUtils.IgnoreBlank(description);
         if (ignoreBlank.length() > 100) {

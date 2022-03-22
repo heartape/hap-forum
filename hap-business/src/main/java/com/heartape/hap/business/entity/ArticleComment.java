@@ -39,9 +39,6 @@ public class ArticleComment extends BaseEntity {
     @TableField(updateStrategy = FieldStrategy.NEVER)
     private String content;
 
-    @TableField(typeHandler = JacksonTypeHandler.class, fill = FieldFill.INSERT)
-    private List<Long> childrenId;
-
     @TableField(exist = false)
     private List<ArticleCommentChild> children;
 

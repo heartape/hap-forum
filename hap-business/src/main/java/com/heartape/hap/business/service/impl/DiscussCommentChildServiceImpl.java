@@ -5,13 +5,13 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.DiscussComment;
 import com.heartape.hap.business.entity.DiscussCommentChild;
-import com.heartape.hap.business.entity.TopicDiscuss;
 import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
 import com.heartape.hap.business.entity.dto.DiscussCommentChildDTO;
+import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
+import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
 import com.heartape.hap.business.mapper.DiscussCommentMapper;
-import com.heartape.hap.business.mapper.TopicDiscussMapper;
 import com.heartape.hap.business.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.utils.AssertUtils;
@@ -38,6 +38,9 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
     @Autowired
     private AssertUtils assertUtils;
+
+    @Autowired
+    private TokenFeignServiceImpl tokenFeignService;
 
     @Override
     public void create(DiscussCommentChildDTO discussCommentChildDTO) {
@@ -72,6 +75,8 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
     @Override
     public void remove(Long commentId) {
-
+        long uid = tokenFeignService.getUid();
+        int delete = baseMapper.delete(new QueryWrapper<DiscussCommentChild>().eq("comment_id", commentId).eq("uid", uid));
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有DiscussCommentChild删除权限,commentId:%s,uid:%s", commentId, uid)));
     }
 }

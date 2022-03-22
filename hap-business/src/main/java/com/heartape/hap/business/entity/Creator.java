@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class Creator extends BaseEntity {
-    @TableId(value = "uid", type = IdType.ASSIGN_ID)
+    @TableId(value = "uid", type = IdType.AUTO)
     @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
 

@@ -41,9 +41,6 @@ public class DiscussComment extends BaseEntity {
 
     private String content;
 
-    @TableField(typeHandler = JacksonTypeHandler.class, fill = FieldFill.INSERT)
-    private List<Long> childrenId;
-
     @TableField(exist = false)
     private List<DiscussCommentChild> children;
 

@@ -1,15 +1,11 @@
 package com.heartape.hap.business.controller;
 
 import com.github.pagehelper.PageInfo;
-import com.heartape.hap.business.entity.bo.TopicBO;
 import com.heartape.hap.business.entity.bo.TopicDiscussBO;
-import com.heartape.hap.business.entity.bo.TopicSimpleBO;
 import com.heartape.hap.business.entity.dto.TopicDiscussDTO;
 import com.heartape.hap.business.entity.ro.TopicDiscussRO;
-import com.heartape.hap.business.entity.ro.TopicRO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.ITopicDiscussService;
-import com.heartape.hap.business.service.ITopicService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

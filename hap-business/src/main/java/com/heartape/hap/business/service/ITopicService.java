@@ -5,7 +5,7 @@ import com.heartape.hap.business.entity.Topic;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.business.entity.bo.TopicBO;
 import com.heartape.hap.business.entity.bo.TopicSimpleBO;
-import com.heartape.hap.business.entity.ro.TopicRO;
+import com.heartape.hap.business.entity.dto.TopicDTO;
 
 /**
  * <p>
@@ -20,7 +20,7 @@ public interface ITopicService extends IService<Topic> {
     /**
      * 创建话题
      */
-    void create(TopicRO topic);
+    void create(TopicDTO topicDTO);
 
     /**
      * 查询列表

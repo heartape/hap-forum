@@ -26,4 +26,9 @@ public class LinkGuideServiceImpl extends ServiceImpl<LinkGuideMapper, LinkGuide
         // todo:现根据top,order排序,再根据热度进行排序
         return query().orderByDesc("topping", "sequence").list();
     }
+
+    @Override
+    public void create() {
+        baseMapper.insert();
+    }
 }

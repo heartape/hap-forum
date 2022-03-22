@@ -19,16 +19,16 @@ import org.springframework.web.bind.annotation.*;
  * @since 2022-03-13
  */
 @RestController
-@RequestMapping("/business/article/comment/children")
+@RequestMapping("/business/article/comment/child")
 public class ArticleCommentChildController {
     @Autowired
     private IArticleCommentChildService articleCommentChildrenService;
 
     @PostMapping
-    public Result publish(@RequestBody ArticleCommentChildRO articleCommentChildRO) {
+    public Result create(@RequestBody ArticleCommentChildRO articleCommentChildRO) {
         ArticleCommentChildDTO articleCommentChildDTO = new ArticleCommentChildDTO();
         BeanUtils.copyProperties(articleCommentChildRO, articleCommentChildDTO);
-        articleCommentChildrenService.publish(articleCommentChildDTO);
+        articleCommentChildrenService.create(articleCommentChildDTO);
         return Result.success();
     }
 

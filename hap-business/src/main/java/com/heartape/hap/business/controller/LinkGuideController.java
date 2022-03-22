@@ -28,4 +28,10 @@ public class LinkGuideController {
         List<LinkGuide> linkGuides = linkGuideService.showList(page, size);
         return Result.success(linkGuides);
     }
+
+    @PostMapping
+    public Result create() {
+        linkGuideService.create();
+        return Result.success();
+    }
 }

@@ -30,10 +30,10 @@ public class ArticleCommentController {
     private IArticleCommentService articleCommentService;
 
     @PostMapping
-    public Result publish(@RequestBody ArticleCommentRO articleCommentRO) {
+    public Result create(@RequestBody ArticleCommentRO articleCommentRO) {
         ArticleCommentDTO articleCommentDTO = new ArticleCommentDTO();
         BeanUtils.copyProperties(articleCommentRO, articleCommentDTO);
-        articleCommentService.publish(articleCommentDTO);
+        articleCommentService.create(articleCommentDTO);
         return Result.success();
     }
 
