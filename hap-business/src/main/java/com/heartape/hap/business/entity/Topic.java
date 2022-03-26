@@ -50,9 +50,6 @@ public class Topic extends BaseEntity {
     @TableField(updateStrategy = FieldStrategy.NEVER)
     private String description;
 
-    @TableField("is_long")
-    private Boolean isLong;
-
     @TableField(value = "label_id", typeHandler = JacksonTypeHandler.class)
     private List<Long> labelId;
 

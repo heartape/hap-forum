@@ -63,20 +63,15 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         BeanUtils.copyProperties(topicDTO, topic);
         String description = topic.getDescription();
         String ignoreBlank = stringTransformUtils.IgnoreBlank(description);
-        if (ignoreBlank.length() > 100) {
-            String simpleDescription = ignoreBlank.substring(0, 100);
-            topic.setSimpleDescription(simpleDescription);
-            topic.setIsLong(true);
-        } else {
-            topic.setIsLong(false);
-        }
+        String simpleDescription = ignoreBlank.length() > 100 ? ignoreBlank.substring(0, 100) : ignoreBlank;
+        topic.setSimpleDescription(simpleDescription);
         baseMapper.insert(topic);
     }
 
     @Override
     public PageInfo<TopicSimpleBO> list(Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<Topic> list = query().select("topic_id","title","is_picture","main_picture","is_long","simple_description","description","created_time").list();
+        List<Topic> list = query().select("topic_id","title","is_picture","main_picture","simple_description","description","created_time").list();
         PageInfo<Topic> pageInfo = PageInfo.of(list);
         PageInfo<TopicSimpleBO> topicBOPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, topicBOPageInfo);

@@ -40,12 +40,6 @@ public class ArticleController {
         return Result.success(articles);
     }
 
-    @GetMapping("/list/creator")
-    public Result creatorList(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleSimpleBO> articles = articleService.creatorList(page, size);
-        return Result.success(articles);
-    }
-
     @GetMapping
     public Result detail(@RequestParam Long articleId) {
         ArticleBO article = articleService.detail(articleId);

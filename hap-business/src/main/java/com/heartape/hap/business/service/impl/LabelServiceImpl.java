@@ -1,5 +1,6 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.Label;
@@ -11,6 +12,7 @@ import com.heartape.hap.business.service.ILabelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +31,11 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
     @Override
     public PageInfo<SimpleLabelBO> list(String name, Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<Label> labels = query().like("name", name).select("label_id", "name").list();
+        QueryChainWrapper<Label> query = query();
+        if (StringUtils.hasText(name)) {
+            query = query.like("name", name);
+        }
+        List<Label> labels = query.select("label_id", "name").list();
         PageInfo<Label> pageInfo = PageInfo.of(labels);
         PageInfo<SimpleLabelBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
@@ -39,7 +45,7 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
             return simpleLabelBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(simpleLabelBOS);
-        return null;
+        return boPageInfo;
     }
 
     @Override
@@ -57,17 +63,8 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
         Label label = new Label();
         BeanUtils.copyProperties(labelRO, label);
         String introduce = labelRO.getIntroduce();
-        String simpleIntroduce;
-        boolean isLong;
-        if (introduce.length() > 100) {
-            simpleIntroduce = introduce.substring(0, 100);
-            isLong = true;
-        } else {
-            simpleIntroduce = introduce;
-            isLong = false;
-        }
+        String simpleIntroduce = introduce.length() > 100 ? introduce.substring(0, 100) : introduce;
         label.setSimpleIntroduce(simpleIntroduce);
-        label.setIsLong(isLong);
         this.baseMapper.insert(label);
     }
 }

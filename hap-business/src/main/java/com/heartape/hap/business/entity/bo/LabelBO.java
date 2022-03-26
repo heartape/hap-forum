@@ -35,7 +35,4 @@ public class LabelBO {
 
     private String introduce;
 
-    @ApiModelProperty("介绍长度是否超过100个字符")
-    private Boolean isLong;
-
 }

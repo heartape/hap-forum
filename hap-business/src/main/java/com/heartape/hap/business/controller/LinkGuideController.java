@@ -29,6 +29,9 @@ public class LinkGuideController {
         return Result.success(linkGuides);
     }
 
+    /**
+     * todo:后续抽离到后台模块
+     */
     @PostMapping
     public Result create() {
         linkGuideService.create();

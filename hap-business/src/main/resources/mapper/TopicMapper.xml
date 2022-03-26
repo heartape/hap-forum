@@ -9,7 +9,6 @@
         <result column="nickname" property="nickname" />
         <result column="profile" property="profile" />
         <result column="title" property="title" />
-        <result column="is_long" property="isLong" />
         <result column="simple_description" property="simpleDescription" />
         <result column="description" property="description" />
         <result column="created_time" property="createdTime" />
@@ -19,8 +18,8 @@
         </collection>
     </resultMap>
     <select id="selectOneLabel" resultMap="topicWithLabel">
-        select t1.topic_id,t1.uid,t1.avatar,t1.nickname,t1.profile,t1.title,t1.is_long,
-               t1.simple_description,t1.description,t1.created_time,t2.label_id,t2.name
+        select t1.topic_id,t1.uid,t1.avatar,t1.nickname,t1.profile,t1.title,t1.simple_description,t1.description,
+               t1.created_time,t2.label_id,t2.name
         from topic t1
                  left join label t2
                            on JSON_CONTAINS(JSON_EXTRACT(t1.label_id, '$[*]'), CONVERT(t2.label_id, CHAR))

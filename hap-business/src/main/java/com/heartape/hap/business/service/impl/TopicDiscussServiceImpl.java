@@ -16,6 +16,9 @@ import com.heartape.hap.business.mapper.TopicMapper;
 import com.heartape.hap.business.service.ITopicDiscussService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.utils.AssertUtils;
+import com.heartape.hap.business.utils.StringTransformUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -49,6 +52,9 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     @Autowired
     private AssertUtils assertUtils;
 
+    @Autowired
+    private StringTransformUtils stringTransformUtils;
+
     @Override
     public void create(TopicDiscussDTO topicDiscussDTO) {
         // 验证话题是否存在
@@ -56,8 +62,15 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         Long count = topicMapper.selectCount(new QueryWrapper<Topic>().eq("topic_id", topicId));
         assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("TopicDiscuss所依赖的Topic:id=%s不存在", topicId)));
 
+        String content = topicDiscussDTO.getContent();
+        String s = Jsoup.clean(content, Safelist.none());
+        String ignoreBlank = stringTransformUtils.IgnoreBlank(s);
+        int length = ignoreBlank.length();
+        String simpleContent = length > 100 ? ignoreBlank.substring(0, 100) : content;
+
         TopicDiscuss topicDiscuss = new TopicDiscuss();
         BeanUtils.copyProperties(topicDiscussDTO, topicDiscuss);
+        topicDiscuss.setSimpleContent(simpleContent);
         baseMapper.insert(topicDiscuss);
     }
 

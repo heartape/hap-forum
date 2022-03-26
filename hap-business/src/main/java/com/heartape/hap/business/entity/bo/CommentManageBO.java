@@ -7,29 +7,29 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 
-/**
- * <p>
- *
- * </p>
- *
- * @author heartape
- * @since 2022-03-13
- */
 @Data
-public class TopicSimpleBO {
+public class CommentManageBO {
 
     @JsonSerialize(using = ToStringSerializer.class)
-    private Long topicId;
+    private Long commentId;
+
+    private String targetType;
+
+    private String mainType;
+
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long mainId;
 
     private String title;
 
-    private Boolean isPicture;
+    @JsonSerialize(using = ToStringSerializer.class)
+    private Long uid;
 
-    private String mainPicture;
+    private String avatar;
 
-    private String simpleDescription;
+    private String nickname;
 
-    private String description;
+    private String comment;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;

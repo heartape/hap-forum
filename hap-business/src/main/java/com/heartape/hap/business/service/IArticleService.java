@@ -28,11 +28,6 @@ public interface IArticleService extends IService<Article> {
     PageInfo<ArticleSimpleBO> list(Integer page, Integer size);
 
     /**
-     * 个人中心文章列表
-     */
-    PageInfo<ArticleSimpleBO> creatorList(Integer page, Integer size);
-
-    /**
      * 文章详情
      */
     ArticleBO detail(Long articleId);

@@ -87,26 +87,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
-    public PageInfo<ArticleSimpleBO> creatorList(Integer page, Integer size) {
-        long uid = tokenFeignService.getUid();
-        PageHelper.startPage(page, size);
-        List<Article> list = query().select("article_id","is_picture","main_picture","title","simple_content","created_time")
-                .eq("uid",uid).orderByDesc("created_time").list();
-        PageInfo<Article> pageInfo = PageInfo.of(list);
-
-        List<ArticleSimpleBO> collect = list.stream().map(article -> {
-            ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
-            BeanUtils.copyProperties(article, articleSimpleBO);
-            return articleSimpleBO;
-        }).collect(Collectors.toList());
-
-        PageInfo<ArticleSimpleBO> copyPageInfo = PageInfo.emptyPageInfo();
-        BeanUtils.copyProperties(pageInfo, copyPageInfo);
-        copyPageInfo.setList(collect);
-        return copyPageInfo;
-    }
-
-    @Override
     public ArticleBO detail(Long articleId) {
         Article article = this.baseMapper.selectOneLabel(articleId);
         ArticleBO articleBO = new ArticleBO();

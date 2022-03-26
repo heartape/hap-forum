@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.heartape.hap.business.mapper.ContentManageMapper">
+    <select id="selectDiscussList" resultType="com.heartape.hap.business.entity.ContentManage">
+        select t1.discuss_id id, t1.simple_content content, t1.created_time,
+        t2.topic_id mainId, t2.title
+        from topic_discuss t1
+        inner join topic t2
+        on t1.topic_id = t2.topic_id
+        and t2.status = 1
+        <where>
+            t1.uid = #{uid}
+            <if test="startTime != null and endTime != null">
+                and t1.created_time between #{startTime} and #{endTime}
+            </if>
+            and t1.status = 1
+        </where>
+        order by t1.created_time desc
+    </select>
+</mapper>

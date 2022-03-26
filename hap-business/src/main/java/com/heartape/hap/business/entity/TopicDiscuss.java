@@ -22,7 +22,7 @@ public class TopicDiscuss extends BaseEntity {
     @TableId(value = "discuss_id", type = IdType.AUTO)
     private Long discussId;
 
-    @TableField("topic_id")
+    @TableField(value = "topic_id", updateStrategy = FieldStrategy.NEVER)
     private Long topicId;
 
     @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
@@ -37,6 +37,10 @@ public class TopicDiscuss extends BaseEntity {
     @TableField(fill = FieldFill.INSERT)
     private String profile;
 
+    @TableField(value = "simple_content", updateStrategy = FieldStrategy.NEVER)
+    private String simpleContent;
+
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private String content;
 
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
