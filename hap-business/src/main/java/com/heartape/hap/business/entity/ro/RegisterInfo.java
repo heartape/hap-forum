@@ -1,4 +1,4 @@
-package com.heartape.hap.business.entity;
+package com.heartape.hap.business.entity.ro;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;

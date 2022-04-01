@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heartape.hap.business.mapper.LinkGuideMapper">
+
+    <insert id="insert">
+        insert into link_guide (title, path, topping, status, created_by, created_time, updated_by, updated_time)
+        values ('','',true,true,1,'2022-03-22T15:19:28.321',1,'2022-03-22T15:19:28.321')
+    </insert>
+</mapper>

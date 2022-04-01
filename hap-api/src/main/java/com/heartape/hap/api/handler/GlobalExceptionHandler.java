@@ -27,6 +27,7 @@ public class GlobalExceptionHandler {
     public ErrorResult handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -37,6 +38,7 @@ public class GlobalExceptionHandler {
     public ErrorResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -47,6 +49,7 @@ public class GlobalExceptionHandler {
     public ErrorResult handleBindException(BindException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -57,6 +60,7 @@ public class GlobalExceptionHandler {
     public ErrorResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(HttpStatus.BAD_REQUEST, ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -67,6 +71,7 @@ public class GlobalExceptionHandler {
     public ErrorResult handleBusinessException(BusinessException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(e.getExceptionEnum(),path);
     }
 
@@ -77,6 +82,7 @@ public class GlobalExceptionHandler {
     public ErrorResult globalError(Throwable e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        e.printStackTrace();
         return ErrorResult.error(HttpStatus.INTERNAL_SERVER_ERROR, ResultCode.SYSTEM_INNER_ERROR, path);
     }
 }

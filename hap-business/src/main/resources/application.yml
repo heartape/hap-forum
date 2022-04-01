@@ -1,7 +1,7 @@
 spring:
   profiles:
     active: dev
-#    include: sharding,dev
+    include: dev, sharding
 mybatis-plus:
   global-config:
     db-config:
@@ -10,6 +10,6 @@ mybatis-plus:
       logic-not-delete-value: 1 # 逻辑未删除值(默认为 0)
 pagehelper:
   helperDialect: mysql
-  reasonable: true
+  reasonable: false
   supportMethodsArguments: true
   params: count=countSql

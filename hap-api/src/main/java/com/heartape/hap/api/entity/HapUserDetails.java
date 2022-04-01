@@ -25,6 +25,7 @@ public class HapUserDetails {
     private String password;
     private String username;
     private String nickname;
+    private String profile;
     private String avatar;
     private String role;
 }

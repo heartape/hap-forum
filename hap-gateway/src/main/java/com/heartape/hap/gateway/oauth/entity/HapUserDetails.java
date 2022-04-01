@@ -33,8 +33,10 @@ public class HapUserDetails implements UserDetails {
     private String username;
     private String password;
     private String nickname;
+    private String profile;
     private String avatar;
     private String role;
+    private String accountStatus;
 
     public HapUserDetails() {
     }
@@ -44,9 +46,11 @@ public class HapUserDetails implements UserDetails {
         this.uid = creator.getUid();
         this.username = creator.getEmail();
         this.nickname = creator.getNickname();
+        this.profile = creator.getProfile();
         this.password = creator.getPassword();
         this.avatar = creator.getAvatar();
         this.role = creator.getRole();
+        this.accountStatus = creator.getAccountStatus();
     }
 
     /**
@@ -74,24 +78,24 @@ public class HapUserDetails implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isAccountNonExpired() {
-        return true;
+        return "1".equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isAccountNonLocked() {
-        return true;
+        return "1".equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isCredentialsNonExpired() {
-        return true;
+        return "1".equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return true;
+        return "1".equals(accountStatus);
     }
 }

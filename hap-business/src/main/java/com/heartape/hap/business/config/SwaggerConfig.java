@@ -30,7 +30,7 @@ public class SwaggerConfig {
 
         return new ApiInfoBuilder()
                 .title("业务模块API文档")
-                .description("本文档描述了photo模块接口定义")
+                .description("本文档描述了业务模块接口定义")
                 .version("0.1.0 alpha")
                 .contact(new Contact("java", "http://www.heartape.com", "1343348876@qq.com"))
                 .build();

@@ -25,6 +25,7 @@ public enum ResultCode {
     RESULT_DATA_NONE(50001,"数据未找到"),
     DATA_IS_WRONG(50002,"数据错误"),
     DATA_ALREADY_EXISTED(50003,"数据冲突"),
+    RELY_DATA_NOT_EXISTED(50004,"依赖的数据不存在或已被删除"),
     /** 接口 */
     INTERFACE_INNER_INVOKE_ERROR(60001,"内部接口异常"),
     INTERFACE_OUTER_INVOKE_ERROR(60002,"外部接口异常"),
@@ -36,7 +37,8 @@ public enum ResultCode {
     PERMISSION_NO_ACCESS(70001,"无访问权限"),
     RESOURCE_EXISTED(70002,"资源冲突"),
     RESOURCE_NOT_EXISTED(70003,"资源不存在"),
-    ROLE_NO_EXISTED(70004,"角色不存在");
+    ROLE_NO_EXISTED(70004,"角色不存在"),
+    PERMISSION_NO_REMOVE(70005,"无删除权限");
 
     private final Integer code;
 

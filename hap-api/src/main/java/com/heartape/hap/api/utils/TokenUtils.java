@@ -160,8 +160,8 @@ public class TokenUtils {
     /**
      * 获取用户信息
      */
-    public HapUserDetails getUserDetails(String token) {
-        // String token = getToken(getRequest());
+    public HapUserDetails getUserDetails() {
+        String token = getToken(getRequest());
         Claims claims = parseAutograph(token);
         String tokenKey = getTokenKey(claims);
         return getTokenValue(tokenKey);

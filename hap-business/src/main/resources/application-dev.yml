@@ -9,9 +9,9 @@ spring:
       discovery:
         # 启动的nacos的ip和端口
         server-addr: 127.0.0.1:8848
-  # 分库分表时删除datasource配置
-  datasource:
-    username: root
-    password: root
-    url: jdbc:mysql://localhost:3306/hap_forum
-    driverClassName: com.mysql.cj.jdbc.Driver
+#  # 分库分表时删除datasource配置
+#  datasource:
+#    username: root
+#    password: root
+#    url: jdbc:mysql://localhost:3306/hap_forum
+#    driverClassName: com.mysql.cj.jdbc.Driver

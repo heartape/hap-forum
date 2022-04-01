@@ -41,7 +41,7 @@ public class HapDetailsService implements ReactiveUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String s) {
         if (!tokenUtils.checkMail(s)) {
-            throw new LoginErrorException("登录用户名不是邮件格式");
+            throw new LoginErrorException(String.format("登录用户名不是邮件格式,邮箱为: %s", s));
         }
         // 异步运行调用feign
         CompletableFuture<Result> future = CompletableFuture.supplyAsync(() -> oauthFeign.mailPasswordLogin(s));
@@ -51,8 +51,6 @@ public class HapDetailsService implements ReactiveUserDetailsService {
         }
         Object data = result.getData();
         String s1 = new Gson().toJson(data);
-        // gson解析LocalDateTime失败,改用阿里
-        // Visitor visitor = new Gson().fromJson(new Gson().toJson(data), Visitor.class);
         Creator creator = JSONObject.parseObject(s1, Creator.class);
         HapUserDetails hapUserDetails = new HapUserDetails(creator);
         return Mono.just(hapUserDetails);

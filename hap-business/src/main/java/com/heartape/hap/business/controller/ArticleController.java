@@ -1,16 +1,15 @@
 package com.heartape.hap.business.controller;
 
-import com.heartape.hap.business.entity.Article;
-import com.heartape.hap.business.mapper.ArticleMapper;
+import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.entity.bo.ArticleSimpleBO;
+import com.heartape.hap.business.entity.bo.ArticleBO;
+import com.heartape.hap.business.entity.dto.ArticleDTO;
+import com.heartape.hap.business.entity.ro.ArticleRO;
 import com.heartape.hap.business.response.Result;
+import com.heartape.hap.business.service.IArticleService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -25,19 +24,31 @@ import java.util.List;
 public class ArticleController {
 
     @Autowired
-    private ArticleMapper articleMapper;
+    private IArticleService articleService;
 
     @PostMapping
-    public Result publish() {
-        Article article = new Article();
-        article.setContent("qrqweqw");
-        article.setTitle("qwrqw");
-        article.setPublishTime(LocalDateTime.now());
-        article.setUid(1L);
-        List<Long> labels = new ArrayList<>();
-        labels.add(1L);
-        article.setLabelId(labels);
-        articleMapper.insert(article);
+    public Result publish(@RequestBody ArticleRO article) {
+        ArticleDTO articleDTO = new ArticleDTO();
+        BeanUtils.copyProperties(article, articleDTO);
+        articleService.publish(articleDTO);
+        return Result.success();
+    }
+
+    @GetMapping("/list/hot")
+    public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<ArticleSimpleBO> articles = articleService.list(pageNum, pageSize);
+        return Result.success(articles);
+    }
+
+    @GetMapping
+    public Result detail(@RequestParam Long articleId) {
+        ArticleBO article = articleService.detail(articleId);
+        return Result.success(article);
+    }
+
+    @DeleteMapping
+    public Result remove(@RequestParam Long articleId) {
+        articleService.remove(articleId);
         return Result.success();
     }
 }
