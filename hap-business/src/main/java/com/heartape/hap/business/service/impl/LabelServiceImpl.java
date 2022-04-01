@@ -33,7 +33,7 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
         PageHelper.startPage(page, size);
         QueryChainWrapper<Label> query = query();
         if (StringUtils.hasText(name)) {
-            query = query.like("name", name);
+            query = query.likeRight("name", name);
         }
         List<Label> labels = query.select("label_id", "name").list();
         PageInfo<Label> pageInfo = PageInfo.of(labels);

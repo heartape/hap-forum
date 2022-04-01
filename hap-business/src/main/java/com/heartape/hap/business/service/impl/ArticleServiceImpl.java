@@ -77,6 +77,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         List<ArticleSimpleBO> collect = list.stream().map(article -> {
             ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
             BeanUtils.copyProperties(article, articleSimpleBO);
+            // todo:集成热度系统
+            articleSimpleBO.setLike(1437);
             return articleSimpleBO;
         }).collect(Collectors.toList());
 
@@ -98,6 +100,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return labelBO;
         }).collect(Collectors.toList());
         articleBO.setLabel(label);
+        articleBO.setLike(15267);
+        articleBO.setDislike(452);
         return articleBO;
     }
 

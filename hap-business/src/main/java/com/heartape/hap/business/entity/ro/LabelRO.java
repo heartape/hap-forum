@@ -17,7 +17,7 @@ import java.util.List;
 public class LabelRO{
 
     @ApiModelProperty("最多3级")
-    private Long level;
+    private Integer level;
 
     @ApiModelProperty("一级标签没有parentId，其他必须")
     private List<Long> parentId;

@@ -44,7 +44,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
     @Override
     public void create(DiscussCommentChildDTO discussCommentChildDTO) {
-        // 验证讨论是否存在
+        // 验证父评论是否存在
         Long topicId = discussCommentChildDTO.getTopicId();
         Long discussId = discussCommentChildDTO.getDiscussId();
         Long parentId = discussCommentChildDTO.getParentId();
@@ -53,6 +53,23 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
         DiscussCommentChild discussCommentChild = new DiscussCommentChild();
         BeanUtils.copyProperties(discussCommentChildDTO, discussCommentChild);
+        discussCommentChild.setChildToChild(false);
+        baseMapper.insert(discussCommentChild);
+    }
+
+    @Override
+    public void createToChild(DiscussCommentChildDTO discussCommentChildDTO) {
+        // 验证父评论是否存在
+        Long topicId = discussCommentChildDTO.getTopicId();
+        Long discussId = discussCommentChildDTO.getDiscussId();
+        Long parentId = discussCommentChildDTO.getParentId();
+        Long commentId = discussCommentChildDTO.getChildTarget();
+        Long count = query().eq("topic_id", topicId).eq("comment_id", commentId).eq("discuss_id", discussId).eq("parent_id", parentId).count();
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("DiscussCommentChild所依赖的DiscussCommentChild:id=%s不存在", commentId)));
+
+        DiscussCommentChild discussCommentChild = new DiscussCommentChild();
+        BeanUtils.copyProperties(discussCommentChildDTO, discussCommentChild);
+        discussCommentChild.setChildToChild(true);
         baseMapper.insert(discussCommentChild);
     }
 
@@ -67,6 +84,9 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         List<DiscussCommentChildBO> commentChildBOS = children.stream().map(discussCommentChild -> {
             DiscussCommentChildBO discussCommentChildBO = new DiscussCommentChildBO();
             BeanUtils.copyProperties(discussCommentChild, discussCommentChildBO);
+            // todo:点赞
+            discussCommentChildBO.setLike(3552);
+            discussCommentChildBO.setDislike(853);
             return discussCommentChildBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(commentChildBOS);

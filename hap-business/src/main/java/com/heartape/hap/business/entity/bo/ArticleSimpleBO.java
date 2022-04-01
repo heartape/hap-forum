@@ -32,4 +32,6 @@ public class ArticleSimpleBO {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
 
+    private Integer like;
+
 }

@@ -1,6 +1,5 @@
 package com.heartape.hap.business.entity.ro;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import lombok.Data;
 
 /**

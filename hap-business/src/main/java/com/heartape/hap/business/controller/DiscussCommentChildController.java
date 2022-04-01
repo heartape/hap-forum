@@ -37,9 +37,17 @@ public class DiscussCommentChildController {
         return Result.success();
     }
 
+    @PostMapping("/to-child")
+    public Result createToChild(@RequestBody DiscussCommentChildRO discussCommentChildRO) {
+        DiscussCommentChildDTO discussCommentChildDTO = new DiscussCommentChildDTO();
+        BeanUtils.copyProperties(discussCommentChildRO, discussCommentChildDTO);
+        discussCommentChildService.createToChild(discussCommentChildDTO);
+        return Result.success();
+    }
+
     @GetMapping("/list")
-    public Result list(@RequestParam Long commentId, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<DiscussCommentChildBO> discussCommentChild = discussCommentChildService.list(commentId, page, size);
+    public Result list(@RequestParam Long commentId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<DiscussCommentChildBO> discussCommentChild = discussCommentChildService.list(commentId, pageNum, pageSize);
         return Result.success(discussCommentChild);
     }
 

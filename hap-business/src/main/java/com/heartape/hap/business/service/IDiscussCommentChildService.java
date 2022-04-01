@@ -18,6 +18,8 @@ public interface IDiscussCommentChildService extends IService<DiscussCommentChil
 
     void create(DiscussCommentChildDTO discussCommentChildDTO);
 
+    void createToChild(DiscussCommentChildDTO discussCommentChildDTO);
+
     PageInfo<DiscussCommentChildBO> list(Long commentId, Integer page, Integer size);
 
     void remove(Long commentId);

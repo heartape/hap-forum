@@ -33,6 +33,7 @@ public class HapUserDetails implements UserDetails {
     private String username;
     private String password;
     private String nickname;
+    private String profile;
     private String avatar;
     private String role;
     private String accountStatus;
@@ -45,6 +46,7 @@ public class HapUserDetails implements UserDetails {
         this.uid = creator.getUid();
         this.username = creator.getEmail();
         this.nickname = creator.getNickname();
+        this.profile = creator.getProfile();
         this.password = creator.getPassword();
         this.avatar = creator.getAvatar();
         this.role = creator.getRole();

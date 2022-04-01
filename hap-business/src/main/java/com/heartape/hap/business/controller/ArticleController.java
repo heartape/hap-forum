@@ -34,9 +34,9 @@ public class ArticleController {
         return Result.success();
     }
 
-    @GetMapping("/list")
-    public Result list(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleSimpleBO> articles = articleService.list(page, size);
+    @GetMapping("/list/hot")
+    public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<ArticleSimpleBO> articles = articleService.list(pageNum, pageSize);
         return Result.success(articles);
     }
 

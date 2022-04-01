@@ -26,6 +26,9 @@ public class Creator {
     /**用户昵称*/
     private String nickname;
 
+    /**用户昵称*/
+    private String profile;
+
     /**用户头像*/
     private String avatar;
 

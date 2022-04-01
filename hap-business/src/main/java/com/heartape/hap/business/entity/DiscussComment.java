@@ -48,4 +48,8 @@ public class DiscussComment extends BaseEntity {
     @TableField(typeHandler = JacksonTypeHandler.class)
     private Topping topping;
 
+    /**评论总数*/
+    @TableField(exist = false)
+    private Integer total;
+
 }

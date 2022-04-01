@@ -23,6 +23,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,7 +58,7 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     public void create(ArticleCommentDTO articleCommentDTO) {
         Long articleId = articleCommentDTO.getArticleId();
         Long count = articleMapper.selectCount(new QueryWrapper<Article>().eq("article_id", articleId));
-        assertUtils.businessState(count != 1, new RelyDataNotExistedException(String.format("ArticleComment所依赖的Article:id=%s不存在", articleId)));
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleComment所依赖的Article:id=%s不存在", articleId)));
 
         ArticleComment articleComment = new ArticleComment();
         BeanUtils.copyProperties(articleCommentDTO, articleComment);
@@ -67,14 +68,17 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     @Override
     public PageInfo<ArticleCommentBO> list(Long articleId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<ArticleComment> articleComments = query().list();
+        List<ArticleComment> articleComments = baseMapper.selectWithChildCount(articleId);
         PageInfo<ArticleComment> pageInfo = PageInfo.of(articleComments);
         PageInfo<ArticleCommentBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
         List<ArticleCommentBO> commentBOs = articleComments.stream().map(comment -> {
             ArticleCommentBO articleCommentBO = new ArticleCommentBO();
             BeanUtils.copyProperties(comment, articleCommentBO);
-            // todo: 获取高热度评论
+            // todo:从热度统计中获取较高的子评论
+            articleCommentBO.setSimpleChildren(new ArrayList<>());
+            articleCommentBO.setLike(124);
+            articleCommentBO.setDislike(13);
             return articleCommentBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(commentBOs);

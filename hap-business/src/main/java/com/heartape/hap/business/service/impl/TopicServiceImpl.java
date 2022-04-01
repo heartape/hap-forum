@@ -78,15 +78,11 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         List<TopicSimpleBO> collect = list.stream().map(topic -> {
             TopicSimpleBO topicBO = new TopicSimpleBO();
             BeanUtils.copyProperties(topic, topicBO);
+            topicBO.setHot(125235);
             return topicBO;
         }).collect(Collectors.toList());
         topicBOPageInfo.setList(collect);
         return topicBOPageInfo;
-    }
-
-    @Override
-    public PageInfo<TopicSimpleBO> creatorList(Integer page, Integer size) {
-        return null;
     }
 
     @Override
@@ -101,6 +97,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         TopicBO topicBO = new TopicBO();
         BeanUtils.copyProperties(topic, topicBO);
         topicBO.setLabel(labelBOList);
+        topicBO.setLike(124634);
+        topicBO.setDislike(7456);
         return topicBO;
     }
 

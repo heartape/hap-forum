@@ -34,15 +34,9 @@ public class TopicController {
         return Result.success();
     }
 
-    @GetMapping("/list")
-    public Result list(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<TopicSimpleBO> topic = topicService.list(page, size);
-        return Result.success(topic);
-    }
-
-    @GetMapping("/list/creator")
-    public Result creatorList(@RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<TopicSimpleBO> topic = topicService.creatorList(page, size);
+    @GetMapping("/list/hot")
+    public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<TopicSimpleBO> topic = topicService.list(pageNum, pageSize);
         return Result.success(topic);
     }
 

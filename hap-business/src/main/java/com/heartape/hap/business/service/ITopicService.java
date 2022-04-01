@@ -27,8 +27,6 @@ public interface ITopicService extends IService<Topic> {
      */
     PageInfo<TopicSimpleBO> list(Integer page, Integer size);
 
-    PageInfo<TopicSimpleBO> creatorList(Integer page, Integer size);
-
     /**
      * 详细内容
      */

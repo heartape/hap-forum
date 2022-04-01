@@ -21,6 +21,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,7 +54,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         Long topicId = discussCommentDTO.getTopicId();
         Long discussId = discussCommentDTO.getDiscussId();
         Long count = topicDiscussMapper.selectCount(new QueryWrapper<TopicDiscuss>().eq("topic_id", topicId).eq("discuss_id", discussId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("TopicDiscuss所依赖的Topic:id=%s不存在", topicId)));
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("TopicDiscuss所依赖的Topic:id=%s或Discuss:id=%s不存在", topicId, discussId)));
 
         DiscussComment discussComment = new DiscussComment();
         BeanUtils.copyProperties(discussCommentDTO, discussComment);
@@ -63,7 +64,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     @Override
     public PageInfo<DiscussCommentBO> list(Long discussId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<DiscussComment> discussComments = query().list();
+        List<DiscussComment> discussComments = baseMapper.selectWithChildCount(discussId);
         PageInfo<DiscussComment> pageInfo = PageInfo.of(discussComments);
         PageInfo<DiscussCommentBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
@@ -71,6 +72,9 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
             DiscussCommentBO discussCommentBO = new DiscussCommentBO();
             BeanUtils.copyProperties(discussComment, discussCommentBO);
             // todo: 获取高热度评论
+            discussCommentBO.setSimpleChildren(new ArrayList<>());
+            discussCommentBO.setLike(6343);
+            discussCommentBO.setDislike(456);
             return discussCommentBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(discussCommentBOS);

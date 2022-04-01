@@ -19,8 +19,6 @@ public class DiscussCommentChildDTO {
 
     private Long parentId;
 
-    private Boolean childToChild;
-
     private Long childTarget;
 
     private String content;

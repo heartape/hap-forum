@@ -1,7 +1,5 @@
 package com.heartape.hap.business.controller;
 
-
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.bo.ArticleCommentBO;
 import com.heartape.hap.business.entity.dto.ArticleCommentDTO;
@@ -12,7 +10,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * <p>
@@ -38,8 +37,8 @@ public class ArticleCommentController {
     }
 
     @GetMapping("/list")
-    public Result list(@RequestParam Long articleId, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleCommentBO> articleComment = articleCommentService.list(articleId, page, size);
+    public Result list(@RequestParam Long articleId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<ArticleCommentBO> articleComment = articleCommentService.list(articleId, pageNum, pageSize);
         return Result.success(articleComment);
     }
 

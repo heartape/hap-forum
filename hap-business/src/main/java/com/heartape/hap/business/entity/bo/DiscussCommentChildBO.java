@@ -40,9 +40,14 @@ public class DiscussCommentChildBO extends BaseEntity {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long childTarget;
 
+    private String childTargetName;
+
     private String content;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
 
+    private Integer like;
+
+    private Integer dislike;
 }

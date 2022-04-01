@@ -1,6 +1,5 @@
 package com.heartape.hap.business.entity.ro;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 

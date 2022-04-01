@@ -17,8 +17,6 @@ public class ArticleCommentChildDTO {
 
     private Long parentId;
 
-    private Boolean childToChild;
-
     private Long childTarget;
 
     private String content;

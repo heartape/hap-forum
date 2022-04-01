@@ -63,9 +63,9 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http
                 .authorizeExchange()
-                .pathMatchers("/login", "/login/mail", "/login/phone", "/api/oauth/check", "/api/oauth/code").permitAll()
-//                .pathMatchers("/api/oauth/info").authenticated()
-//                .pathMatchers("/api/oauth/**").denyAll()
+                .pathMatchers("/login", "/login/mail", "/login/phone", "/api/oauth/check")
+                .permitAll()
+                .pathMatchers("/api/oauth/token","/api/oauth/uid").denyAll()
                 // 除上面外的所有请求全部需要鉴权认证
                 .anyExchange().authenticated()
                 .and()

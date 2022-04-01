@@ -2,12 +2,15 @@ package com.heartape.hap.business.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.heartape.hap.business.entity.LinkGuide;
+import com.heartape.hap.business.entity.bo.LinkGuideBO;
 import com.heartape.hap.business.mapper.LinkGuideMapper;
 import com.heartape.hap.business.service.ILinkGuideService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -21,10 +24,15 @@ import java.util.List;
 public class LinkGuideServiceImpl extends ServiceImpl<LinkGuideMapper, LinkGuide> implements ILinkGuideService {
 
     @Override
-    public List<LinkGuide> showList(Integer page, Integer size) {
+    public List<LinkGuideBO> showList(Integer page, Integer size) {
         PageHelper.startPage(page,size);
         // todo:现根据top,order排序,再根据热度进行排序
-        return query().orderByDesc("topping", "sequence").list();
+        List<LinkGuide> list = query().select("guide_id", "title", "path").orderByDesc("topping", "sequence").list();
+        return list.stream().map(linkGuide -> {
+            LinkGuideBO linkGuideBO = new LinkGuideBO();
+            BeanUtils.copyProperties(linkGuide, linkGuideBO);
+            return linkGuideBO;
+        }).collect(Collectors.toList());
     }
 
     @Override

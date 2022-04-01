@@ -52,10 +52,25 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         Long articleId = articleCommentChildDTO.getArticleId();
         Long parentId = articleCommentChildDTO.getParentId();
         Long count = articleCommentMapper.selectCount(new QueryWrapper<ArticleComment>().eq("article_id", articleId).eq("comment_id", parentId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChildren所依赖的Article:id=%s或ArticleComment:id=%s不存在", articleId, parentId)));
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChild所依赖的Article:id=%s或ArticleComment:id=%s不存在", articleId, parentId)));
 
         ArticleCommentChild articleCommentChild = new ArticleCommentChild();
         BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
+        articleCommentChild.setChildToChild(false);
+        baseMapper.insert(articleCommentChild);
+    }
+
+    @Override
+    public void createToChild(ArticleCommentChildDTO articleCommentChildDTO) {
+        Long articleId = articleCommentChildDTO.getArticleId();
+        Long parentId = articleCommentChildDTO.getParentId();
+        Long childTarget = articleCommentChildDTO.getChildTarget();
+        Long count = query().eq("article_id", articleId).eq("parent_id", parentId).eq("comment_id", childTarget).count();
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChild所依赖的Article:id=%s或ArticleComment:id=%s或ArticleCommentChild:id=%s不存在", articleId, parentId, childTarget)));
+
+        ArticleCommentChild articleCommentChild = new ArticleCommentChild();
+        BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
+        articleCommentChild.setChildToChild(true);
         baseMapper.insert(articleCommentChild);
     }
 
@@ -69,6 +84,8 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         List<ArticleCommentChildBO> childBOList = commentChildren.stream().map(child -> {
             ArticleCommentChildBO childBO = new ArticleCommentChildBO();
             BeanUtils.copyProperties(child, childBO);
+            childBO.setLike(123);
+            childBO.setDislike(53);
             return childBO;
         }).collect(Collectors.toList());
         PageInfo<ArticleCommentChildBO> childBOPageInfo = new PageInfo<>();

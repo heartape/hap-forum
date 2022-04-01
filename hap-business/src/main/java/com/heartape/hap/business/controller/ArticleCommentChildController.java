@@ -32,9 +32,17 @@ public class ArticleCommentChildController {
         return Result.success();
     }
 
+    @PostMapping("/to-child")
+    public Result createToChild(@RequestBody ArticleCommentChildRO articleCommentChildRO) {
+        ArticleCommentChildDTO articleCommentChildDTO = new ArticleCommentChildDTO();
+        BeanUtils.copyProperties(articleCommentChildRO, articleCommentChildDTO);
+        articleCommentChildrenService.createToChild(articleCommentChildDTO);
+        return Result.success();
+    }
+
     @GetMapping("/list")
-    public Result list(@RequestParam Long commentId, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<ArticleCommentChildBO> articleCommentChildren = articleCommentChildrenService.list(commentId, page, size);
+    public Result list(@RequestParam Long commentId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<ArticleCommentChildBO> articleCommentChildren = articleCommentChildrenService.list(commentId, pageNum, pageSize);
         return Result.success(articleCommentChildren);
     }
 

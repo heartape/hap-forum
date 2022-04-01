@@ -77,13 +77,15 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     @Override
     public PageInfo<TopicDiscussBO> list(Long topicId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
-        List<TopicDiscuss> topicDiscusses = query().eq("topic_id", topicId).list();
+        List<TopicDiscuss> topicDiscusses = baseMapper.selectWithCommentCount(topicId);
         PageInfo<TopicDiscuss> pageInfo = PageInfo.of(topicDiscusses);
         PageInfo<TopicDiscussBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
         List<TopicDiscussBO> collect = topicDiscusses.stream().map(topicDiscuss -> {
             TopicDiscussBO topicDiscussBO = new TopicDiscussBO();
             BeanUtils.copyProperties(topicDiscuss, topicDiscussBO);
+            topicDiscussBO.setLike(87456);
+            topicDiscussBO.setDislike(836);
             return topicDiscussBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(collect);

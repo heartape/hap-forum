@@ -21,7 +21,7 @@ public class LabelBO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long labelId;
 
-    private Long level;
+    private Integer level;
 
     private List<Long> parentId;
 

@@ -1,11 +1,7 @@
 package com.heartape.hap.api.controller;
 
-import com.heartape.hap.api.entity.LoginCode;
-import com.heartape.hap.api.entity.LoginForm;
+import com.heartape.hap.api.entity.*;
 import com.heartape.hap.api.entity.RO.LoginCodeRO;
-import com.heartape.hap.api.entity.Creator;
-import com.heartape.hap.api.entity.CreatorInfo;
-import com.heartape.hap.api.entity.HapUserDetails;
 import com.heartape.hap.api.response.Result;
 import com.heartape.hap.api.utils.TokenUtils;
 import io.swagger.annotations.Api;
@@ -13,8 +9,6 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/oauth")
@@ -45,21 +39,21 @@ public class TokenController {
     }
 
     @GetMapping("/uid")
-    public Result uid(@RequestParam String token) {
+    public Result uid() {
         long uid = tokenUtils.getUid();
         return Result.success(uid);
     }
 
     @GetMapping("/token")
     @ApiOperation("获取token信息")
-    public Result token(@RequestParam String token) {
-        HapUserDetails info = tokenUtils.getUserDetails(token);
+    public Result token() {
+        HapUserDetails info = tokenUtils.getUserDetails();
         return Result.success(info);
     }
 
     @GetMapping("/info")
-    public Result getInfo(@RequestParam String token) {
-        HapUserDetails userDetails = tokenUtils.getUserDetails(token);
+    public Result getInfo() {
+        HapUserDetails userDetails = tokenUtils.getUserDetails();
         CreatorInfo creatorInfo = new CreatorInfo();
         BeanUtils.copyProperties(userDetails, creatorInfo);
         return Result.success(creatorInfo);
@@ -79,7 +73,7 @@ public class TokenController {
             throw new RuntimeException();
         }
         // 123456
-        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","nickname","avatar","admin");
+        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","加藤惠", "路人女主","https://file.heartape.com/picture/avatar-1.jpg","admin");
         return Result.success(creator);
     }
 

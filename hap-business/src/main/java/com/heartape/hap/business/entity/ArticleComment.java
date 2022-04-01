@@ -39,11 +39,13 @@ public class ArticleComment extends BaseEntity {
     @TableField(updateStrategy = FieldStrategy.NEVER)
     private String content;
 
-    @TableField(exist = false)
-    private List<ArticleCommentChild> children;
-
     @ApiModelProperty("置顶条件，根据不同的搜索条件判断是否置顶（暂不实现）")
     @TableField(typeHandler = JacksonTypeHandler.class, insertStrategy = FieldStrategy.NEVER)
     private Topping topping;
 
+    /**
+     * 用于返回子评论数量
+     */
+    @TableField(exist = false)
+    private Integer total;
 }

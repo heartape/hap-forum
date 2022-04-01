@@ -1,6 +1,8 @@
 package com.heartape.hap.business.entity.bo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -16,8 +18,10 @@ import java.time.LocalDateTime;
 @Data
 public class ArticleCommentChildBO {
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long commentId;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
 
     private String avatar;
@@ -26,6 +30,7 @@ public class ArticleCommentChildBO {
 
     private Boolean childToChild;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long childTarget;
 
     private String childTargetName;
@@ -34,4 +39,8 @@ public class ArticleCommentChildBO {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createdTime;
+
+    private Integer like;
+
+    private Integer dislike;
 }

@@ -25,8 +25,8 @@ public class LabelController {
     private ILabelService labelService;
 
     @GetMapping("/list")
-    public Result list(@RequestParam(required = false) String name, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<SimpleLabelBO> labelBO = labelService.list(name, page, size);
+    public Result list(@RequestParam(required = false) String name, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<SimpleLabelBO> labelBO = labelService.list(name, pageNum, pageSize);
         return Result.success(labelBO);
     }
 

@@ -22,6 +22,11 @@ public interface IArticleCommentChildService extends IService<ArticleCommentChil
     void create(ArticleCommentChildDTO articleCommentChildDTO);
 
     /**
+     * 发布子评论的评论
+     */
+    void createToChild(ArticleCommentChildDTO articleCommentChildDTO);
+
+    /**
      * 查询子评论列表
      */
     PageInfo<ArticleCommentChildBO> list(Long commentId, Integer page, Integer size);
@@ -30,4 +35,5 @@ public interface IArticleCommentChildService extends IService<ArticleCommentChil
      * 删除子评论
      */
     void remove(Long commentId);
+
 }

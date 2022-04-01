@@ -34,8 +34,8 @@ public class TopicDiscussController {
     }
 
     @GetMapping("/list")
-    public Result list(@RequestParam Long topicId, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<TopicDiscussBO> topic = topicDiscussService.list(topicId, page, size);
+    public Result list(@RequestParam Long topicId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<TopicDiscussBO> topic = topicDiscussService.list(topicId, pageNum, pageSize);
         return Result.success(topic);
     }
 

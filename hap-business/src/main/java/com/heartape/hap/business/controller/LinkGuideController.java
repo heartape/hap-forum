@@ -1,6 +1,7 @@
 package com.heartape.hap.business.controller;
 
 import com.heartape.hap.business.entity.LinkGuide;
+import com.heartape.hap.business.entity.bo.LinkGuideBO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.ILinkGuideService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,8 @@ public class LinkGuideController {
     private ILinkGuideService linkGuideService;
 
     @GetMapping
-    public Result list(@RequestParam Integer page, @RequestParam Integer size) {
-        List<LinkGuide> linkGuides = linkGuideService.showList(page, size);
+    public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        List<LinkGuideBO> linkGuides = linkGuideService.showList(pageNum, pageSize);
         return Result.success(linkGuides);
     }
 

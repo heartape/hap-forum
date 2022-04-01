@@ -2,14 +2,10 @@ package com.heartape.hap.business.controller;
 
 
 import com.github.pagehelper.PageInfo;
-import com.heartape.hap.business.entity.bo.ArticleCommentBO;
 import com.heartape.hap.business.entity.bo.DiscussCommentBO;
-import com.heartape.hap.business.entity.dto.ArticleCommentDTO;
 import com.heartape.hap.business.entity.dto.DiscussCommentDTO;
-import com.heartape.hap.business.entity.ro.ArticleCommentRO;
 import com.heartape.hap.business.entity.ro.DiscussCommentRO;
 import com.heartape.hap.business.response.Result;
-import com.heartape.hap.business.service.IArticleCommentService;
 import com.heartape.hap.business.service.IDiscussCommentService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +35,8 @@ public class DiscussCommentController {
     }
 
     @GetMapping("/list")
-    public Result list(@RequestParam Long discussId, @RequestParam Integer page, @RequestParam Integer size) {
-        PageInfo<DiscussCommentBO> discussComment = discussCommentService.list(discussId, page, size);
+    public Result list(@RequestParam Long discussId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
+        PageInfo<DiscussCommentBO> discussComment = discussCommentService.list(discussId, pageNum, pageSize);
         return Result.success(discussComment);
     }
 

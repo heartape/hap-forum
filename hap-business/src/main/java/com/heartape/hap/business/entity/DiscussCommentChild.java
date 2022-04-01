@@ -45,7 +45,7 @@ public class DiscussCommentChild extends BaseEntity {
     @TableField(value = "child_target", updateStrategy = FieldStrategy.NEVER)
     private Long childTarget;
 
-    @TableField("child_target_name")
+    @TableField(value = "child_target_name", fill = FieldFill.INSERT)
     private String childTargetName;
 
     private String content;

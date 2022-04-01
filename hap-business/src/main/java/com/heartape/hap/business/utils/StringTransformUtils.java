@@ -22,6 +22,6 @@ public class StringTransformUtils {
     }
 
     public String IgnoreBlank(String string) {
-        return string.replaceAll(" ","");
+        return string.replaceAll(" ","").replaceAll("&nbsp;", "");
     }
 }

@@ -26,7 +26,7 @@ public class Label extends BaseEntity {
     private Long labelId;
 
     @ApiModelProperty("最多3级")
-    private Long level;
+    private Integer level;
 
     @TableField(value = "parent_id",typeHandler = JacksonTypeHandler.class)
     private List<Long> parentId;

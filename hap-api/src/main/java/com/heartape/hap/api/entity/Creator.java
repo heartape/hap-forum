@@ -33,6 +33,8 @@ public class Creator {
 
     private String nickname;
 
+    private String profile;
+
     private String avatar;
 
     private String role;
@@ -40,12 +42,13 @@ public class Creator {
     /**账户状态*/
     private String accountStatus;
 
-    public Creator(Long uid, String email, String mobile, String password, String nickname, String avatar, String role) {
+    public Creator(Long uid, String email, String mobile, String password, String nickname, String profile, String avatar, String role) {
         this.uid = uid;
         this.email = email;
         this.mobile = mobile;
         this.password = password;
         this.nickname = nickname;
+        this.profile = profile;
         this.avatar = avatar;
         this.role = role;
         this.accountStatus = "1";
