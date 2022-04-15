@@ -54,7 +54,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private AssertUtils assertUtils;
 
     @Override
-    public void publish(ArticleDTO articleDTO) {
+    public void create(ArticleDTO articleDTO) {
         Article article = new Article();
         BeanUtils.copyProperties(articleDTO, article);
         String content = article.getContent();

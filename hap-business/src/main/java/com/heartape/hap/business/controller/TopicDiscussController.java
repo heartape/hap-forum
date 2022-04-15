@@ -6,6 +6,8 @@ import com.heartape.hap.business.entity.dto.TopicDiscussDTO;
 import com.heartape.hap.business.entity.ro.TopicDiscussRO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.ITopicDiscussService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,12 +22,14 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/business/topic/discuss")
+@Api(tags = "讨论")
 public class TopicDiscussController {
 
     @Autowired
     private ITopicDiscussService topicDiscussService;
 
     @PostMapping
+    @ApiOperation("创建讨论")
     public Result create(@RequestBody TopicDiscussRO topicDiscuss) {
         TopicDiscussDTO topicDiscussDTO = new TopicDiscussDTO();
         BeanUtils.copyProperties(topicDiscuss, topicDiscussDTO);
@@ -34,12 +38,14 @@ public class TopicDiscussController {
     }
 
     @GetMapping("/list")
+    @ApiOperation("讨论列表")
     public Result list(@RequestParam Long topicId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
         PageInfo<TopicDiscussBO> topic = topicDiscussService.list(topicId, pageNum, pageSize);
         return Result.success(topic);
     }
 
     @DeleteMapping
+    @ApiOperation("删除讨论")
     public Result remove(@RequestParam Long topicId) {
         topicDiscussService.remove(topicId);
         return Result.success();

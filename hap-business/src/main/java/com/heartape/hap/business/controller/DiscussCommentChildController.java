@@ -10,6 +10,8 @@ import com.heartape.hap.business.entity.ro.DiscussCommentChildRO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.IArticleCommentChildService;
 import com.heartape.hap.business.service.IDiscussCommentChildService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,12 +26,14 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/business/topic/discuss/comment/child")
+@Api(tags = "讨论子评论")
 public class DiscussCommentChildController {
 
     @Autowired
     private IDiscussCommentChildService discussCommentChildService;
 
     @PostMapping
+    @ApiOperation("创建讨论子评论")
     public Result create(@RequestBody DiscussCommentChildRO discussCommentChildRO) {
         DiscussCommentChildDTO discussCommentChildDTO = new DiscussCommentChildDTO();
         BeanUtils.copyProperties(discussCommentChildRO, discussCommentChildDTO);
@@ -38,6 +42,7 @@ public class DiscussCommentChildController {
     }
 
     @PostMapping("/to-child")
+    @ApiOperation("创建讨论子评论间子评论")
     public Result createToChild(@RequestBody DiscussCommentChildRO discussCommentChildRO) {
         DiscussCommentChildDTO discussCommentChildDTO = new DiscussCommentChildDTO();
         BeanUtils.copyProperties(discussCommentChildRO, discussCommentChildDTO);
@@ -46,12 +51,14 @@ public class DiscussCommentChildController {
     }
 
     @GetMapping("/list")
+    @ApiOperation("讨论子评论列表")
     public Result list(@RequestParam Long commentId, @RequestParam Integer pageNum, @RequestParam Integer pageSize) {
         PageInfo<DiscussCommentChildBO> discussCommentChild = discussCommentChildService.list(commentId, pageNum, pageSize);
         return Result.success(discussCommentChild);
     }
 
     @DeleteMapping
+    @ApiOperation("删除讨论子评论")
     public Result remove(@RequestParam Long commentId) {
         discussCommentChildService.remove(commentId);
         return Result.success();

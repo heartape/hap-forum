@@ -20,7 +20,7 @@ public interface IArticleService extends IService<Article> {
     /**
      * 发布文章
      */
-    void publish(ArticleDTO articleDTO);
+    void create(ArticleDTO articleDTO);
 
     /**
      * 文章列表

@@ -2,7 +2,6 @@ package com.heartape.hap.business.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
-
 import java.util.List;
 
 import io.swagger.annotations.ApiModelProperty;
