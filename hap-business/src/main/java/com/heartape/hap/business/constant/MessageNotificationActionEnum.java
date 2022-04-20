@@ -10,19 +10,30 @@ package com.heartape.hap.business.constant;
  */
 public enum MessageNotificationActionEnum {
 
-    LIKE("1"),
-    STAR("2"),
-    DISCUSS("3"),
-    COMMENT("3"),
-    REPLY("5");
+    /** 点赞 */
+    LIKE("1", "like"),
+    /** 关注 */
+    STAR("2", "star"),
+    /** 讨论 */
+    DISCUSS("3", "discuss"),
+    /** 评论 */
+    COMMENT("4", "comment"),
+    /** 回复 */
+    REPLY("5", "reply");
 
-    private final String action;
+    private final String code;
+    private final String name;
 
-    MessageNotificationActionEnum(String action) {
-        this.action = action;
+    MessageNotificationActionEnum(String code, String name) {
+        this.code = code;
+        this.name = name;
     }
 
-    public String getAction() {
-        return action;
+    public String getCode() {
+        return code;
+    }
+
+    public String getName() {
+        return name;
     }
 }

@@ -1,4 +1,4 @@
-package com.heartape.hap.api.entity.RO;
+package com.heartape.hap.api.entity.ro;
 
 import lombok.Data;
 

@@ -1,21 +1,29 @@
 package com.heartape.hap.business.constant;
 
+/**
+ * 主体类型
+ */
 public enum MessageNotificationMainTypeEnum {
 
-    ARTICLE("11"),
-    ARTICLE_COMMENT("12"),
-    ARTICLE_COMMENT_CHILD("13"),
-    TOPIC("21"),
-    DISCUSS("22"),
-    DISCUSS_COMMENT("23"),
-    DISCUSS_COMMENT_CHILD("24"),
-    LABEL("3"),
-    CREATOR("4");
+    /** 文章 */
+    ARTICLE("1", "article"),
+    /** 话题 */
+    TOPIC("2", "topic"),
+    /** 标签 */
+    LABEL("3", "label"),
+    /** 用户 */
+    CREATOR("4", "creator");
 
+    private final String typeCode;
     private final String typeName;
 
-    MessageNotificationMainTypeEnum(String typeName) {
+    MessageNotificationMainTypeEnum(String typeCode, String typeName) {
+        this.typeCode = typeCode;
         this.typeName = typeName;
+    }
+
+    public String getTypeCode() {
+        return typeCode;
     }
 
     public String getTypeName() {

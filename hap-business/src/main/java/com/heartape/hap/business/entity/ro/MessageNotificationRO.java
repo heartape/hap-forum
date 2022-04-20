@@ -5,8 +5,6 @@ import lombok.Data;
 @Data
 public class MessageNotificationRO {
 
-    private String action;
-
     /** 消息通知所对应的主体 */
     private Long mainId;
 
