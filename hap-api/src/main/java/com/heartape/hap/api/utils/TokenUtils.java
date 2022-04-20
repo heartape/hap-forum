@@ -3,7 +3,7 @@ package com.heartape.hap.api.utils;
 import cn.hutool.captcha.CaptchaUtil;
 import cn.hutool.captcha.ShearCaptcha;
 import com.heartape.hap.api.entity.LoginCode;
-import com.heartape.hap.api.entity.RO.LoginCodeRO;
+import com.heartape.hap.api.entity.ro.LoginCodeRO;
 import com.heartape.hap.api.entity.HapUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

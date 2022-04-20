@@ -1,4 +1,4 @@
-package com.heartape.hap.api.entity;
+package com.heartape.hap.api.entity.ro;
 
 import com.heartape.hap.api.annotation.Phone;
 import io.swagger.annotations.ApiModel;
@@ -10,7 +10,7 @@ import javax.validation.constraints.Email;
 
 @Data
 @ApiModel(value="注册对象", description="注册对象")
-public class RegisterInfo {
+public class CreatorRO {
 
     @ApiModelProperty(value = "邮箱")
     @Length(min = 8, max = 16, message = "请输入8-16位长度的密码")

@@ -1,28 +1,14 @@
 package com.heartape.hap.api.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import io.swagger.annotations.ApiModelProperty;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
 public class Creator {
 
     @TableId(value = "uid", type = IdType.ASSIGN_ID)
-    @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
 
     private String email;
@@ -40,7 +26,23 @@ public class Creator {
     private String role;
 
     /**账户状态*/
+    @TableField(value = "account_status")
     private String accountStatus;
+
+    @TableField(fill = FieldFill.INSERT, select = false)
+    private Boolean status;
+
+    @TableField(value = "created_time", fill = FieldFill.INSERT, updateStrategy = FieldStrategy.IGNORED)
+    private LocalDateTime createdTime;
+
+//    @TableField(value = "updated_by", fill = FieldFill.UPDATE, select = false)
+//    private Long updatedBy;
+
+    @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updatedTime;
+
+    public Creator() {
+    }
 
     public Creator(Long uid, String email, String mobile, String password, String nickname, String profile, String avatar, String role) {
         this.uid = uid;
@@ -51,6 +53,5 @@ public class Creator {
         this.profile = profile;
         this.avatar = avatar;
         this.role = role;
-        this.accountStatus = "1";
     }
 }

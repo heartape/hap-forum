@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
+import com.heartape.hap.gateway.oauth.constant.AccountStatusEnum;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -78,24 +79,24 @@ public class HapUserDetails implements UserDetails {
     @Override
     @JsonIgnore
     public boolean isAccountNonExpired() {
-        return "1".equals(accountStatus);
+        return AccountStatusEnum.NORMAL.getName().equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isAccountNonLocked() {
-        return "1".equals(accountStatus);
+        return AccountStatusEnum.NORMAL.getName().equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isCredentialsNonExpired() {
-        return "1".equals(accountStatus);
+        return AccountStatusEnum.NORMAL.getName().equals(accountStatus);
     }
 
     @Override
     @JsonIgnore
     public boolean isEnabled() {
-        return "1".equals(accountStatus);
+        return AccountStatusEnum.NORMAL.getName().equals(accountStatus);
     }
 }

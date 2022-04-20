@@ -1,8 +1,10 @@
 package com.heartape.hap.api.controller;
 
 import com.heartape.hap.api.entity.*;
-import com.heartape.hap.api.entity.RO.LoginCodeRO;
+import com.heartape.hap.api.entity.bo.CreatorBO;
+import com.heartape.hap.api.entity.ro.LoginCodeRO;
 import com.heartape.hap.api.response.Result;
+import com.heartape.hap.api.service.ITokenService;
 import com.heartape.hap.api.utils.TokenUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -12,11 +14,14 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/oauth")
-@Api("认证相关接口")
+@Api(tags = "认证相关接口")
 public class TokenController {
 
     @Autowired
     private TokenUtils tokenUtils;
+
+    @Autowired
+    private ITokenService tokenService;
 
     @ApiOperation("获取验证码")
     @GetMapping("/code")
@@ -25,6 +30,7 @@ public class TokenController {
         return Result.success(loginCode);
     }
 
+    @ApiOperation("校验验证码")
     @PostMapping("/code")
     public Result checkCode(@RequestBody LoginCodeRO loginCode) {
         boolean check = tokenUtils.checkCode(loginCode);
@@ -39,6 +45,7 @@ public class TokenController {
     }
 
     @GetMapping("/uid")
+    @ApiOperation("获取uid")
     public Result uid() {
         long uid = tokenUtils.getUid();
         return Result.success(uid);
@@ -52,37 +59,29 @@ public class TokenController {
     }
 
     @GetMapping("/info")
+    @ApiOperation("获取用户信息")
     public Result getInfo() {
         HapUserDetails userDetails = tokenUtils.getUserDetails();
-        CreatorInfo creatorInfo = new CreatorInfo();
-        BeanUtils.copyProperties(userDetails, creatorInfo);
-        return Result.success(creatorInfo);
+        CreatorBO creatorBO = new CreatorBO();
+        BeanUtils.copyProperties(userDetails, creatorBO);
+        return Result.success(creatorBO);
     }
 
-    @PostMapping("/check")
-    public Result check() {
-        return Result.success("success");
-    }
-
-    /**
-     * 用于gateway登陆时调用数据库查询用户信息
-     */
     @GetMapping("/login/mail/password")
+    @ApiOperation("gateway登陆时调用数据库查询用户信息")
     public Result mailPasswordLogin(String email) {
-        if (!"heartape@163.com".equals(email)) {
-            throw new RuntimeException();
-        }
-        // 123456
-        Creator creator = new Creator(1L,"heartape@163.com","1234567890", "$2a$10$RlGjkJAbNDAXYf0VTE4P5.wbwb42KLFE8.Br7jA.gSMSCCkCGgZM2","加藤惠", "路人女主","https://file.heartape.com/picture/avatar-1.jpg","admin");
+        Creator creator = tokenService.mailPasswordLogin(email);
         return Result.success(creator);
     }
 
     @PostMapping("/login/mail/code")
+    @ApiOperation("邮箱验证码登录")
     public Result mailCodeLogin(@RequestBody LoginForm loginForm) {
         return Result.success();
     }
 
     @PostMapping("/login/phone/code")
+    @ApiOperation("短信验证码登录")
     public Result phoneCodeLogin(@RequestBody LoginForm loginForm) {
         return Result.success();
     }
