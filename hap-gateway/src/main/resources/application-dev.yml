@@ -1,7 +1,7 @@
 server:
   port: 8080
 token:
-  header: Hap-Token
+  header: X-Token
 spring:
   application:
     # 在注册中心的服务名

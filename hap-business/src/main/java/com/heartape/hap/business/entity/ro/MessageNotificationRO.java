@@ -10,10 +10,11 @@ public class MessageNotificationRO {
 
     private String mainType;
 
-    /** 消息通知的对象，而非消息通知所对应的主体的作者 */
-    private Long targetUid;
+    /** 触发消息通知的用户 */
+    private Long uid;
 
     private String targetType;
 
-    private String targetName;
+    /** 目标id */
+    private Long targetId;
 }

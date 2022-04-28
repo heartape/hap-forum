@@ -2,7 +2,7 @@ package com.heartape.hap.business.controller;
 
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.bo.MessageNotificationBO;
-import com.heartape.hap.business.entity.dto.MessageNotificationDTO;
+import com.heartape.hap.business.entity.dto.MessageNotificationProducerDTO;
 import com.heartape.hap.business.entity.ro.MessageNotificationRO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.IMessageNotificationService;
@@ -23,16 +23,12 @@ public class MessageNotificationController {
     @Autowired
     private IMessageNotificationService messageNotificationService;
 
-    /**
-     * 创建点赞消息
-     * 用于服务间调用
-     */
     @PostMapping("/like")
-    @ApiOperation("创建消息通知")
-    public Result createLike(@RequestBody MessageNotificationRO messageNotificationRO) {
-        MessageNotificationDTO messageNotificationDTO = new MessageNotificationDTO();
-        BeanUtils.copyProperties(messageNotificationRO, messageNotificationDTO);
-        messageNotificationService.createLike(messageNotificationDTO);
+    @ApiOperation("触发点赞消息通知")
+    public Result like(@RequestBody MessageNotificationRO messageNotificationRO) {
+        MessageNotificationProducerDTO messageNotificationProducerDTO = new MessageNotificationProducerDTO();
+        BeanUtils.copyProperties(messageNotificationRO, messageNotificationProducerDTO);
+        messageNotificationService.likeProducer(messageNotificationProducerDTO);
         return Result.success();
     }
 
@@ -41,5 +37,17 @@ public class MessageNotificationController {
     public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {
         PageInfo<MessageNotificationBO> messageNotificationSimple = messageNotificationService.list(pageNum, pageSize);
         return Result.success(messageNotificationSimple);
+    }
+
+    @PutMapping
+    @ApiOperation("设置消息通知已读")
+    public Result read(@RequestParam Long messageId) {
+        return Result.success();
+    }
+
+    @PutMapping("/creator")
+    @ApiOperation("设置某个用户所有消息通知已读")
+    public Result readAll(@RequestParam Long uid) {
+        return Result.success();
     }
 }

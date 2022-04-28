@@ -19,7 +19,13 @@ public enum MessageNotificationActionEnum {
     /** 评论 */
     COMMENT("4", "comment"),
     /** 回复 */
-    REPLY("5", "reply");
+    REPLY("5", "reply"),
+    /** 审核通过 */
+    APPROVE("6", "approve"),
+    /** 审核退回 */
+    BACK("7", "back"),
+    /** 删除 */
+    REMOVE("8", "remove");
 
     private final String code;
     private final String name;
