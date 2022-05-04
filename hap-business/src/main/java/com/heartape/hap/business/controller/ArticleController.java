@@ -52,6 +52,13 @@ public class ArticleController {
         return Result.success(article);
     }
 
+    @PutMapping("/like")
+    @ApiOperation("点赞文章")
+    public Result like(@RequestParam Long articleId) {
+        articleService.like(articleId);
+        return Result.success();
+    }
+
     @DeleteMapping
     @ApiOperation("删除文章")
     public Result remove(@RequestParam Long articleId) {

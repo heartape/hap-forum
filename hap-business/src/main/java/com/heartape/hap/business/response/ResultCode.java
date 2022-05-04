@@ -26,6 +26,7 @@ public enum ResultCode {
     DATA_IS_WRONG(50002,"数据错误"),
     DATA_ALREADY_EXISTED(50003,"数据冲突"),
     RELY_DATA_NOT_EXISTED(50004,"依赖的数据不存在或已被删除"),
+    RESOURCE_OPERATE_REPEAT(50005,"数据重复操作"),
     /** 接口 */
     INTERFACE_INNER_INVOKE_ERROR(60001,"内部接口异常"),
     INTERFACE_OUTER_INVOKE_ERROR(60002,"外部接口异常"),

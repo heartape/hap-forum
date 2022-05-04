@@ -33,6 +33,11 @@ public interface IArticleService extends IService<Article> {
     ArticleBO detail(Long articleId);
 
     /**
+     * 点赞文章
+     */
+    void like(Long articleId);
+
+    /**
      * 删除文章
      */
     void remove(Long articleId);

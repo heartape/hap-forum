@@ -7,17 +7,22 @@ import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.constant.MessageNotificationActionEnum;
 import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
+import com.heartape.hap.business.constant.RabbitMqExchangeRouterConstant;
 import com.heartape.hap.business.entity.*;
 import com.heartape.hap.business.entity.bo.MessageNotificationBO;
-import com.heartape.hap.business.entity.dto.MessageNotificationConsumerDTO;
-import com.heartape.hap.business.entity.dto.MessageNotificationProducerDTO;
+import com.heartape.hap.business.entity.dto.MessageNotificationSendDTO;
+import com.heartape.hap.business.entity.dto.MessageNotificationCreateDTO;
 import com.heartape.hap.business.entity.dto.MessageNotificationTargetDTO;
 import com.heartape.hap.business.exception.ParamIsInvalidException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.*;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IMessageNotificationService;
 import com.heartape.hap.business.utils.AssertUtils;
+import com.rabbitmq.client.Channel;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.*;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -63,27 +68,47 @@ public class MessageNotificationServiceImpl extends ServiceImpl<MessageNotificat
     @Autowired
     private DiscussCommentChildMapper discussCommentChildMapper;
 
+    @Autowired
+    private IMessageNotificationProducer messageNotificationProducer;
+
     @Override
-    public void likeProducer(MessageNotificationProducerDTO messageNotificationProducerDTO) {
-        Long mainId = messageNotificationProducerDTO.getMainId();
-        Long targetId = messageNotificationProducerDTO.getTargetId();
-        String targetType = messageNotificationProducerDTO.getTargetType();
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_QUEUE,
+                    arguments = @Argument(
+                            name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
+                            value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
+                            type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
+            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_EXCHANGE,
+                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_EXCHANGE_TYPE),
+            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_ROUTING_KEY))
+    public void likeConsumer(MessageNotificationCreateDTO messageNotificationCreateDTO, Channel channel, Message message) {
+        Long uid = messageNotificationCreateDTO.getUid();
+        Long mainId = messageNotificationCreateDTO.getMainId();
+        String mainType = messageNotificationCreateDTO.getMainType();
+        Long targetId = messageNotificationCreateDTO.getTargetId();
+        String targetType = messageNotificationCreateDTO.getTargetType();
+
         MessageNotificationTargetDTO target = targetNameByTargetType(mainId, targetId, targetType);
         String targetName = target.getTargetName();
-        for (Long uid : target.getTargetUid()) {
-            MessageNotificationConsumerDTO messageNotificationConsumerDTO = new MessageNotificationConsumerDTO();
-            BeanUtils.copyProperties(messageNotificationProducerDTO, messageNotificationConsumerDTO);
-            messageNotificationConsumerDTO.setTargetUid(uid);
-            messageNotificationConsumerDTO.setTargetName(targetName);
-            // todo:改为发送消息队列
-            likeConsumer(messageNotificationConsumerDTO);
+        for (Long targetUid : target.getTargetUid()) {
+            // 分发消息通知
+            messageNotificationProducer.likeSend(uid, mainId, mainType, targetId, targetType, targetUid, targetName);
         }
     }
 
     @Override
-    public void likeConsumer(MessageNotificationConsumerDTO messageNotificationConsumerDTO) {
+    @RabbitListener(bindings = @QueueBinding(
+            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_QUEUE,
+                    arguments = @Argument(
+                            name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
+                            value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
+                            type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
+            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_EXCHANGE,
+                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_EXCHANGE_TYPE),
+            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_ROUTING_KEY))
+    public void likeMessageSend(MessageNotificationSendDTO messageNotificationSendDTO, Channel channel, Message message) {
         MessageNotification messageNotification = new MessageNotification();
-        BeanUtils.copyProperties(messageNotificationConsumerDTO, messageNotification);
+        BeanUtils.copyProperties(messageNotificationSendDTO, messageNotification);
         messageNotification.setAction(MessageNotificationActionEnum.LIKE.getCode());
         baseMapper.insert(messageNotification);
     }

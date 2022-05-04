@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 资源操作记录工具类，如点赞，收藏等单次不可重复操作
+ * 资源操作记录工具类，如点赞等单次不可重复操作
  */
 @Component
-public class SourceOperateUtil {
+public class SourceOperateLogUtil {
 
     @Autowired
     private RedisTemplate<String,Long> longRedisTemplate;

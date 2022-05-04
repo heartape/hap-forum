@@ -2,7 +2,6 @@ package com.heartape.hap.business.mapper;
 
 import com.heartape.hap.business.entity.ArticleCommentChild;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import org.apache.ibatis.annotations.Mapper;
 
 /**
  * <p>

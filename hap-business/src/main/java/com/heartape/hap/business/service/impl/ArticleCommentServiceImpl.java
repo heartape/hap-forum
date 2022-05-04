@@ -1,8 +1,11 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
+import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.entity.Article;
 import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
@@ -10,14 +13,16 @@ import com.heartape.hap.business.entity.bo.ArticleCommentBO;
 import com.heartape.hap.business.entity.dto.ArticleCommentDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
+import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IArticleCommentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.ArticleCommentLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
-import com.heartape.hap.business.utils.SqlUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,10 +54,13 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     private AssertUtils assertUtils;
 
     @Autowired
-    private SqlUtils sqlUtils;
+    private TokenFeignServiceImpl tokenFeignService;
 
     @Autowired
-    private TokenFeignServiceImpl tokenFeignService;
+    private IMessageNotificationProducer messageNotificationProducer;
+
+    @Autowired
+    private ArticleCommentLikeStatistics articleCommentLikeStatistics;
 
     @Override
     public void create(ArticleCommentDTO articleCommentDTO) {
@@ -83,6 +91,18 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
         }).collect(Collectors.toList());
         boPageInfo.setList(commentBOs);
         return boPageInfo;
+    }
+
+    @Override
+    public void like(Long commentId) {
+        long uid = tokenFeignService.getUid();
+        boolean b = articleCommentLikeStatistics.setOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
+        // 查询文章id
+        LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
+        ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
+        Long articleId = articleComment.getArticleId();
+        messageNotificationProducer.likeCreate(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
     }
 
     @Override

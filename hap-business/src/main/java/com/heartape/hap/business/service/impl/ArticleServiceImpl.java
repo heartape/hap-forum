@@ -3,6 +3,8 @@ package com.heartape.hap.business.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
+import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.entity.Article;
 import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
@@ -10,10 +12,13 @@ import com.heartape.hap.business.entity.bo.*;
 import com.heartape.hap.business.entity.dto.ArticleDTO;
 import com.heartape.hap.business.exception.ParamIsInvalidException;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
+import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
+import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.utils.AssertUtils;
@@ -52,6 +57,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Autowired
     private AssertUtils assertUtils;
+
+    @Autowired
+    private IMessageNotificationProducer messageNotificationProducer;
+
+    @Autowired
+    private ArticleLikeStatistics articleLikeStatistics;
 
     @Override
     public void create(ArticleDTO articleDTO) {
@@ -106,11 +117,20 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    public void like(Long articleId) {
+        long uid = tokenFeignService.getUid();
+        boolean b = articleLikeStatistics.setOperate(articleId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + articleId + "已经进行过点赞"));
+
+        messageNotificationProducer.likeCreate(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+    }
+
+    @Override
     public void remove(Long articleId) {
         long uid = tokenFeignService.getUid();
         int delete = baseMapper.delete(new QueryWrapper<Article>().eq("article_id", articleId).eq("uid", uid));
         assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有删除权限,articleId:%s,uid:%s", articleId, uid)));
-        // todo:考虑是否需要rabbitmq异步删除评论
+        // todo:rabbitmq异步删除评论
         articleCommentMapper.delete(new QueryWrapper<ArticleComment>().eq("article_id", articleId));
         articleCommentChildMapper.delete(new QueryWrapper<ArticleCommentChild>().eq("article_id", articleId));
     }

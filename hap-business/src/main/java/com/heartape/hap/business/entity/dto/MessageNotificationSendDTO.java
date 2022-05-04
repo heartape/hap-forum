@@ -3,7 +3,7 @@ package com.heartape.hap.business.entity.dto;
 import lombok.Data;
 
 @Data
-public class MessageNotificationConsumerDTO {
+public class MessageNotificationSendDTO {
 
     /** 消息通知所对应的主体 */
     private Long mainId;
