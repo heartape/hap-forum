@@ -52,6 +52,13 @@ public class ArticleCommentChildController {
         return Result.success(articleCommentChildren);
     }
 
+    @PutMapping("/like")
+    @ApiOperation("点赞评论")
+    public Result like(@RequestParam Long commentId) {
+        articleCommentChildrenService.like(commentId);
+        return Result.success();
+    }
+
     @DeleteMapping
     @ApiOperation("删除文章子评论")
     public Result remove(@RequestParam Long commentId) {

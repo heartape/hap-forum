@@ -1,20 +1,27 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
+import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.ArticleCommentChild;
 import com.heartape.hap.business.entity.bo.ArticleCommentChildBO;
 import com.heartape.hap.business.entity.dto.ArticleCommentChildDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
+import com.heartape.hap.business.exception.ResourceOperateRepeatException;
+import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IArticleCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.ArticleCommentChildLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +48,16 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
     private ArticleCommentMapper articleCommentMapper;
 
     @Autowired
+    private ArticleCommentChildLikeStatistics articleCommentChildLikeStatistics;
+
+    @Autowired
     private AssertUtils assertUtils;
 
     @Autowired
     private TokenFeignServiceImpl tokenFeignService;
+
+    @Autowired
+    private IMessageNotificationProducer messageNotificationProducer;
 
     @Override
     public void create(ArticleCommentChildDTO articleCommentChildDTO) {
@@ -84,14 +97,32 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         List<ArticleCommentChildBO> childBOList = commentChildren.stream().map(child -> {
             ArticleCommentChildBO childBO = new ArticleCommentChildBO();
             BeanUtils.copyProperties(child, childBO);
-            childBO.setLike(123);
-            childBO.setDislike(53);
+            // 点赞
+            Long childCommentId = child.getCommentId();
+            int likeNumber = articleCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
+            int dislikeNumber = articleCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+            childBO.setLike(likeNumber);
+            childBO.setDislike(dislikeNumber);
             return childBO;
         }).collect(Collectors.toList());
         PageInfo<ArticleCommentChildBO> childBOPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(childPageInfo, childBOPageInfo);
         childBOPageInfo.setList(childBOList);
         return childBOPageInfo;
+    }
+
+    @Override
+    public void like(Long commentId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章子评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
+        // 查询文章id
+        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
+        Long articleId = articleCommentChild.getArticleId();
+        messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
     }
 
     @Override

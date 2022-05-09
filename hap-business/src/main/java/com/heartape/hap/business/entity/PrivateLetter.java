@@ -11,13 +11,11 @@ public class PrivateLetter extends BaseEntity {
     @TableId(value = "letter_id", type = IdType.AUTO)
     private Long letterId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
     @TableField(value = "target_uid", updateStrategy = FieldStrategy.NEVER)

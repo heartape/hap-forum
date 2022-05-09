@@ -27,13 +27,11 @@ public class ArticleComment extends BaseEntity {
     @TableField(value = "article_id", updateStrategy = FieldStrategy.NEVER)
     private Long articleId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
     @TableField(updateStrategy = FieldStrategy.NEVER)

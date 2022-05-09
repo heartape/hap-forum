@@ -59,6 +59,13 @@ public class ArticleController {
         return Result.success();
     }
 
+    @PutMapping("/dislike")
+    @ApiOperation("踩文章")
+    public Result dislike(@RequestParam Long articleId) {
+        articleService.dislike(articleId);
+        return Result.success();
+    }
+
     @DeleteMapping
     @ApiOperation("删除文章")
     public Result remove(@RequestParam Long articleId) {

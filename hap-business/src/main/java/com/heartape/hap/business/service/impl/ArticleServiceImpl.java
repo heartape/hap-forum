@@ -13,6 +13,7 @@ import com.heartape.hap.business.entity.dto.ArticleDTO;
 import com.heartape.hap.business.exception.ParamIsInvalidException;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.ResourceOperateRepeatException;
+import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
@@ -88,8 +89,11 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         List<ArticleSimpleBO> collect = list.stream().map(article -> {
             ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
             BeanUtils.copyProperties(article, articleSimpleBO);
-            // todo:集成热度系统
-            articleSimpleBO.setLike(1437);
+            // 点赞
+            int likeNumber = articleLikeStatistics.getPositiveOperateNumber(article.getArticleId());
+            int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(article.getArticleId());
+            articleSimpleBO.setLike(likeNumber);
+            articleSimpleBO.setDislike(dislikeNumber);
             return articleSimpleBO;
         }).collect(Collectors.toList());
 
@@ -111,18 +115,31 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return labelBO;
         }).collect(Collectors.toList());
         articleBO.setLabel(label);
-        articleBO.setLike(15267);
-        articleBO.setDislike(452);
+        int likeNumber = articleLikeStatistics.getPositiveOperateNumber(article.getArticleId());
+        int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(article.getArticleId());
+        articleBO.setLike(likeNumber);
+        articleBO.setDislike(dislikeNumber);
         return articleBO;
     }
 
     @Override
     public void like(Long articleId) {
-        long uid = tokenFeignService.getUid();
-        boolean b = articleLikeStatistics.setOperate(articleId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + articleId + "已经进行过点赞"));
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleLikeStatistics.setPositiveOperate(articleId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + uid + "已经进行过点赞"));
+        messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+    }
 
-        messageNotificationProducer.likeCreate(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+    @Override
+    public void dislike(Long articleId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleLikeStatistics.setNegativeOperate(articleId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + uid + "已经进行过踩"));
+        messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
     }
 
     @Override

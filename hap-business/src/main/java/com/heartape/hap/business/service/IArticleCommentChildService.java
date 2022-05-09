@@ -32,6 +32,11 @@ public interface IArticleCommentChildService extends IService<ArticleCommentChil
     PageInfo<ArticleCommentChildBO> list(Long commentId, Integer page, Integer size);
 
     /**
+     * 点赞
+     */
+    void like(Long commentId);
+
+    /**
      * 删除子评论
      */
     void remove(Long commentId);

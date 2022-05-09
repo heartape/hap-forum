@@ -25,13 +25,11 @@ public class ArticleCommentChild extends BaseEntity {
     @TableField(value = "parent_id", updateStrategy = FieldStrategy.NEVER)
     private Long parentId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
     @TableField(value = "child_to_child", updateStrategy = FieldStrategy.NEVER)
@@ -40,7 +38,7 @@ public class ArticleCommentChild extends BaseEntity {
     @TableField(value = "child_target", updateStrategy = FieldStrategy.NEVER)
     private Long childTarget;
 
-    @TableField(value = "child_target_name", fill = FieldFill.INSERT)
+    @TableField(value = "child_target_name")
     private String childTargetName;
 
     @TableField(updateStrategy = FieldStrategy.NEVER)

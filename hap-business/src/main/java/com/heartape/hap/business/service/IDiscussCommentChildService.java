@@ -22,5 +22,11 @@ public interface IDiscussCommentChildService extends IService<DiscussCommentChil
 
     PageInfo<DiscussCommentChildBO> list(Long commentId, Integer page, Integer size);
 
+    /**
+     * 点赞
+     */
+    void like(Long commentId);
+
     void remove(Long commentId);
+
 }

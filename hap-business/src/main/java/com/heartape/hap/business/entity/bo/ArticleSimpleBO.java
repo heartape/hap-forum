@@ -34,4 +34,6 @@ public class ArticleSimpleBO {
 
     private Integer like;
 
+    private Integer dislike;
+
 }

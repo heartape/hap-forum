@@ -15,16 +15,8 @@ public class BaseEntity {
     @TableField(fill = FieldFill.INSERT, select = false)
     private Boolean status;
 
-    @JsonIgnore
-    @TableField(value = "created_by", fill = FieldFill.INSERT, select = false, updateStrategy = FieldStrategy.IGNORED)
-    private Long createdBy;
-
     @TableField(value = "created_time", fill = FieldFill.INSERT, updateStrategy = FieldStrategy.IGNORED)
     private LocalDateTime createdTime;
-
-    @JsonIgnore
-    @TableField(value = "updated_by", fill = FieldFill.INSERT_UPDATE, select = false)
-    private Long updatedBy;
 
     @JsonIgnore
     @TableField(value = "updated_time", fill = FieldFill.INSERT_UPDATE)

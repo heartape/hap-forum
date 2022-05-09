@@ -25,16 +25,13 @@ public class TopicDiscuss extends BaseEntity {
     @TableField(value = "topic_id", updateStrategy = FieldStrategy.NEVER)
     private Long topicId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
-    @TableField(fill = FieldFill.INSERT)
     private String profile;
 
     @TableField(value = "simple_content", updateStrategy = FieldStrategy.NEVER)

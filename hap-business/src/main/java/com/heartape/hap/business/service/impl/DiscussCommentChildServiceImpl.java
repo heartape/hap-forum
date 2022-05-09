@@ -1,19 +1,27 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
+import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.entity.DiscussComment;
 import com.heartape.hap.business.entity.DiscussCommentChild;
 import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
 import com.heartape.hap.business.entity.dto.DiscussCommentChildDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
+import com.heartape.hap.business.exception.ResourceOperateRepeatException;
+import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
 import com.heartape.hap.business.mapper.DiscussCommentMapper;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.DiscussCommentChildLikeStatistics;
+import com.heartape.hap.business.statistics.DiscussCommentLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +49,12 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
     @Autowired
     private TokenFeignServiceImpl tokenFeignService;
+
+    @Autowired
+    private DiscussCommentChildLikeStatistics discussCommentChildLikeStatistics;
+
+    @Autowired
+    private IMessageNotificationProducer messageNotificationProducer;
 
     @Override
     public void create(DiscussCommentChildDTO discussCommentChildDTO) {
@@ -84,13 +98,30 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         List<DiscussCommentChildBO> commentChildBOS = children.stream().map(discussCommentChild -> {
             DiscussCommentChildBO discussCommentChildBO = new DiscussCommentChildBO();
             BeanUtils.copyProperties(discussCommentChild, discussCommentChildBO);
-            // todo:点赞
-            discussCommentChildBO.setLike(3552);
-            discussCommentChildBO.setDislike(853);
+            // 点赞
+            Long childCommentId = discussCommentChild.getCommentId();
+            int likeNumber = discussCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
+            int dislikeNumber = discussCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+            discussCommentChildBO.setLike(likeNumber);
+            discussCommentChildBO.setDislike(dislikeNumber);
             return discussCommentChildBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(commentChildBOS);
         return boPageInfo;
+    }
+
+    @Override
+    public void like(Long commentId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = discussCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论子评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
+        // 查询文章id
+        LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+        DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
+        Long topicId = discussCommentChild.getTopicId();
+        messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
     }
 
     @Override

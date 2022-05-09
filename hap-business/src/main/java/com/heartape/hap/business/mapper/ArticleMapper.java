@@ -2,6 +2,7 @@ package com.heartape.hap.business.mapper;
 
 import com.heartape.hap.business.entity.Article;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -12,6 +13,7 @@ import org.apache.ibatis.annotations.Param;
  * @author heartape
  * @since 2022-03-13
  */
+@Mapper
 public interface ArticleMapper extends BaseMapper<Article> {
 
     /**

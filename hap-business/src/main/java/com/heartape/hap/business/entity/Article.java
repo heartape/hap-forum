@@ -22,16 +22,12 @@ public class Article extends BaseEntity {
     @TableId(value = "article_id", type = IdType.AUTO)
     private Long articleId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
-    @TableField(fill = FieldFill.INSERT)
     private String profile;
 
     @TableField(value = "is_picture", updateStrategy = FieldStrategy.NEVER)

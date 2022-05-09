@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArticleLikeStatistics extends AbstractTypeOperateStatistics {
+public class DiscussCommentLikeStatistics extends AbstractTypeOperateStatistics {
 
     @Autowired
     private RedisTemplate<String,Long> longRedisTemplate;
@@ -19,6 +19,6 @@ public class ArticleLikeStatistics extends AbstractTypeOperateStatistics {
 
     @Override
     public String getKeyHeader() {
-        return ResourceRedisKeyConstant.LIKE_ARTICLE;
+        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT;
     }
 }

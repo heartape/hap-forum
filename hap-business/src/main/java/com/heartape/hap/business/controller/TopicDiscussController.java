@@ -44,6 +44,13 @@ public class TopicDiscussController {
         return Result.success(topic);
     }
 
+    @PutMapping("/like")
+    @ApiOperation("点赞讨论")
+    public Result like(@RequestParam Long topicId) {
+        topicDiscussService.like(topicId);
+        return Result.success();
+    }
+
     @DeleteMapping
     @ApiOperation("删除讨论")
     public Result remove(@RequestParam Long topicId) {

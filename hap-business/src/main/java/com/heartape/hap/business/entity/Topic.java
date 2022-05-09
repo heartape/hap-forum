@@ -23,16 +23,13 @@ public class Topic extends BaseEntity {
     @TableId(value = "topic_id", type = IdType.AUTO)
     private Long topicId;
 
-    @TableField(fill = FieldFill.INSERT, updateStrategy = FieldStrategy.NEVER)
+    @TableField(updateStrategy = FieldStrategy.NEVER)
     private Long uid;
 
-    @TableField(fill = FieldFill.INSERT)
     private String avatar;
 
-    @TableField(fill = FieldFill.INSERT)
     private String nickname;
 
-    @TableField(fill = FieldFill.INSERT)
     private String profile;
 
     private String title;

@@ -1,20 +1,27 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
+import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.entity.*;
 import com.heartape.hap.business.entity.bo.TopicDiscussBO;
 import com.heartape.hap.business.entity.dto.TopicDiscussDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
+import com.heartape.hap.business.exception.ResourceOperateRepeatException;
+import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
 import com.heartape.hap.business.mapper.DiscussCommentMapper;
 import com.heartape.hap.business.mapper.TopicDiscussMapper;
 import com.heartape.hap.business.mapper.TopicMapper;
+import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.ITopicDiscussService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.DiscussLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import com.heartape.hap.business.utils.StringTransformUtils;
 import org.jsoup.Jsoup;
@@ -55,6 +62,12 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     @Autowired
     private StringTransformUtils stringTransformUtils;
 
+    @Autowired
+    private IMessageNotificationProducer messageNotificationProducer;
+
+    @Autowired
+    private DiscussLikeStatistics discussLikeStatistics;
+
     @Override
     public void create(TopicDiscussDTO topicDiscussDTO) {
         // 验证话题是否存在
@@ -84,12 +97,30 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         List<TopicDiscussBO> collect = topicDiscusses.stream().map(topicDiscuss -> {
             TopicDiscussBO topicDiscussBO = new TopicDiscussBO();
             BeanUtils.copyProperties(topicDiscuss, topicDiscussBO);
-            topicDiscussBO.setLike(87456);
-            topicDiscussBO.setDislike(836);
+            // 点赞
+            Long discussId = topicDiscuss.getDiscussId();
+            int likeNumber = discussLikeStatistics.getPositiveOperateNumber(discussId);
+            int dislikeNumber = discussLikeStatistics.getPositiveOperateNumber(discussId);
+            topicDiscussBO.setLike(likeNumber);
+            topicDiscussBO.setDislike(dislikeNumber);
             return topicDiscussBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(collect);
         return boPageInfo;
+    }
+
+    @Override
+    public void like(Long discussId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = discussLikeStatistics.setPositiveOperate(discussId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论:" + discussId + ",用户:" + uid + "已经进行过点赞"));
+        // 查询话题id
+        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+        TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
+        Long topicId = topicDiscuss.getTopicId();
+        messageNotificationProducer.likeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
     }
 
     @Override

@@ -20,5 +20,10 @@ public interface ITopicDiscussService extends IService<TopicDiscuss> {
 
     PageInfo<TopicDiscussBO> list(Long topicId, Integer page, Integer size);
 
+    /**
+     * 点赞
+     */
+    void like(Long topicId);
+
     void remove(Long topicId);
 }

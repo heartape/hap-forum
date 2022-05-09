@@ -14,6 +14,7 @@ import com.heartape.hap.business.entity.dto.ArticleCommentDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
 import com.heartape.hap.business.exception.ResourceOperateRepeatException;
+import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
@@ -85,8 +86,10 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
             BeanUtils.copyProperties(comment, articleCommentBO);
             // todo:从热度统计中获取较高的子评论
             articleCommentBO.setSimpleChildren(new ArrayList<>());
-            articleCommentBO.setLike(124);
-            articleCommentBO.setDislike(13);
+            int likeNumber = articleCommentLikeStatistics.getPositiveOperateNumber(comment.getCommentId());
+            int dislikeNumber = articleCommentLikeStatistics.getNegativeOperateNumber(comment.getCommentId());
+            articleCommentBO.setLike(likeNumber);
+            articleCommentBO.setDislike(dislikeNumber);
             return articleCommentBO;
         }).collect(Collectors.toList());
         boPageInfo.setList(commentBOs);
@@ -95,14 +98,16 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
 
     @Override
     public void like(Long commentId) {
-        long uid = tokenFeignService.getUid();
-        boolean b = articleCommentLikeStatistics.setOperate(commentId, uid);
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleCommentLikeStatistics.setPositiveOperate(commentId, uid);
         assertUtils.businessState(b, new ResourceOperateRepeatException("文章评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
         // 查询文章id
         LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
         ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
         Long articleId = articleComment.getArticleId();
-        messageNotificationProducer.likeCreate(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
+        messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
     }
 
     @Override
