@@ -1,5 +1,9 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -41,8 +45,13 @@ public class PrivateLetterServiceImpl extends ServiceImpl<PrivateLetterMapper, P
 
     @Override
     public PageInfo<PrivateLetterSimpleBO> simple(Long targetUid, Integer pageNum, Integer pageSize) {
+        LambdaQueryWrapper<PrivateLetter> queryWrapper = new QueryWrapper<PrivateLetter>().lambda();
+        queryWrapper
+                .select(PrivateLetter::getLetterId, PrivateLetter::getUid, PrivateLetter::getAvatar, PrivateLetter::getNickname, PrivateLetter::getSimpleContent, PrivateLetter::getLookUp, PrivateLetter::getCreatedTime)
+                .eq(PrivateLetter::getTargetUid, targetUid)
+                .orderByDesc(PrivateLetter::getCreatedTime);
         PageHelper.startPage(pageNum, pageSize);
-        List<PrivateLetter> privateLetters = query().select("letter_id", "uid", "avatar", "nickname", "simple_content", "look_up","created_time").eq("target_uid", targetUid).orderByDesc("created_time").list();
+        List<PrivateLetter> privateLetters = baseMapper.selectList(queryWrapper);
         PageInfo<PrivateLetter> pageInfo = PageInfo.of(privateLetters);
         PageInfo<PrivateLetterSimpleBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
@@ -93,9 +102,13 @@ public class PrivateLetterServiceImpl extends ServiceImpl<PrivateLetterMapper, P
     @Override
     public PageInfo<PrivateLetterBO> detail(Long uid, Integer pageNum, Integer pageSize) {
         Long targetUid = tokenFeignService.getUid();
+
+        LambdaQueryWrapper<PrivateLetter> queryWrapper = new QueryWrapper<PrivateLetter>().lambda();
+        queryWrapper
+                .select(PrivateLetter::getLetterId, PrivateLetter::getContent, PrivateLetter::getLookUp, PrivateLetter::getCreatedTime)
+                .eq(PrivateLetter::getUid, uid).eq(PrivateLetter::getTargetUid, targetUid);
         PageHelper.startPage(pageNum, pageSize);
-        List<PrivateLetter> privateLetters = query().select("letter_id", "content", "look_up", "created_time")
-                .eq("uid", uid).eq("target_uid", targetUid).list();
+        List<PrivateLetter> privateLetters = baseMapper.selectList(queryWrapper);
         PageInfo<PrivateLetter> pageInfo = PageInfo.of(privateLetters);
         PageInfo<PrivateLetterBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
@@ -113,12 +126,21 @@ public class PrivateLetterServiceImpl extends ServiceImpl<PrivateLetterMapper, P
     @Override
     public void readOne(Long uid) {
         Long targetUid = tokenFeignService.getUid();
-        update().eq("uid", uid).eq("target_uid", targetUid).eq("look_up", false).set("look_up", true);
+
+        LambdaUpdateWrapper<PrivateLetter> updateWrapper = new UpdateWrapper<PrivateLetter>().lambda();
+        updateWrapper
+                .set(PrivateLetter::getLookUp, true)
+                .eq(PrivateLetter::getUid, uid).eq(PrivateLetter::getTargetUid, targetUid).eq(PrivateLetter::getLookUp, false);
+        baseMapper.update(null, updateWrapper);
     }
 
     @Override
     public void readAll() {
         Long targetUid = tokenFeignService.getUid();
-        update().eq("target_uid", targetUid).eq("look_up", false).set("look_up", true);
+        LambdaUpdateWrapper<PrivateLetter> updateWrapper = new UpdateWrapper<PrivateLetter>().lambda();
+        updateWrapper
+                .set(PrivateLetter::getLookUp, true)
+                .eq(PrivateLetter::getTargetUid, targetUid).eq(PrivateLetter::getLookUp, false);
+        baseMapper.update(null, updateWrapper);
     }
 }

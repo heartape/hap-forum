@@ -72,8 +72,10 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     public void create(TopicDiscussDTO topicDiscussDTO) {
         // 验证话题是否存在
         Long topicId = topicDiscussDTO.getTopicId();
-        Long count = topicMapper.selectCount(new QueryWrapper<Topic>().eq("topic_id", topicId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("TopicDiscuss所依赖的Topic:id=%s不存在", topicId)));
+        LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
+        Long count = topicMapper.selectCount(queryWrapper.eq(Topic::getTopicId, topicId));
+        String message = "\nTopicDiscuss所依赖的Topic不存在,\ntopicId=" + topicId;
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(message));
 
         String content = topicDiscussDTO.getContent();
         String s = Jsoup.clean(content, Safelist.none());
@@ -84,6 +86,16 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         TopicDiscuss topicDiscuss = new TopicDiscuss();
         BeanUtils.copyProperties(topicDiscussDTO, topicDiscuss);
         topicDiscuss.setSimpleContent(simpleContent);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        String profile = tokenInfo.getProfile();
+        topicDiscuss.setUid(uid);
+        topicDiscuss.setAvatar(avatar);
+        topicDiscuss.setNickname(nickname);
+        topicDiscuss.setProfile(profile);
         baseMapper.insert(topicDiscuss);
     }
 
@@ -124,12 +136,31 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     }
 
     @Override
+    public void dislike(Long discussId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = discussLikeStatistics.setPositiveOperate(discussId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论:" + discussId + ",用户:" + uid + "已经进行过点踩"));
+        // 查询话题id
+        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+        TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
+        Long topicId = topicDiscuss.getTopicId();
+        messageNotificationProducer.dislikeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+    }
+
+    @Override
     public void remove(Long discussId) {
         long uid = tokenFeignService.getUid();
-        int delete = baseMapper.delete(new QueryWrapper<TopicDiscuss>().eq("discuss_id", discussId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有删除权限,discussId:%s,uid:%s", discussId, uid)));
-        // todo: 考虑是否需要rabbitmq异步删除
-        discussCommentMapper.delete(new QueryWrapper<DiscussComment>().eq("discuss_id", discussId));
-        discussCommentChildMapper.delete(new QueryWrapper<DiscussCommentChild>().eq("discuss_id", discussId));
+        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+        int delete = baseMapper.delete(queryWrapper.eq(TopicDiscuss::getDiscussId, discussId).eq(TopicDiscuss::getUid, uid));
+        String message = "\n没有删除权限,\ndiscussId=" + discussId + ",\nuid=" + uid;
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
+        // todo: rabbitmq异步删除
+        LambdaQueryWrapper<DiscussComment> discussCommentWrapper = new QueryWrapper<DiscussComment>().lambda();
+        LambdaQueryWrapper<DiscussCommentChild> discussCommentChildWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+
+        discussCommentMapper.delete(discussCommentWrapper.eq(DiscussComment::getDiscussId, discussId));
+        discussCommentChildMapper.delete(discussCommentChildWrapper.eq(DiscussCommentChild::getDiscussId, discussId));
     }
 }

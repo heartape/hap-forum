@@ -39,6 +39,7 @@ public class DiscussCommentChild extends BaseEntity {
     @TableField(value = "child_to_child", updateStrategy = FieldStrategy.NEVER)
     private Boolean childToChild;
 
+    /** 被回复的用户id */
     @TableField(value = "child_target", updateStrategy = FieldStrategy.NEVER)
     private Long childTarget;
 

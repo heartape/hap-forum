@@ -27,6 +27,11 @@ public interface IDiscussCommentChildService extends IService<DiscussCommentChil
      */
     void like(Long commentId);
 
+    /**
+     * 点踩
+     */
+    void dislike(Long commentId);
+
     void remove(Long commentId);
 
 }

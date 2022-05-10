@@ -17,7 +17,6 @@ import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
-import com.heartape.hap.business.mapper.ArticleMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IArticleCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -42,9 +41,6 @@ import java.util.stream.Collectors;
 public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentChildMapper, ArticleCommentChild> implements IArticleCommentChildService {
 
     @Autowired
-    private ArticleMapper articleMapper;
-
-    @Autowired
     private ArticleCommentMapper articleCommentMapper;
 
     @Autowired
@@ -64,12 +60,23 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
 
         Long articleId = articleCommentChildDTO.getArticleId();
         Long parentId = articleCommentChildDTO.getParentId();
-        Long count = articleCommentMapper.selectCount(new QueryWrapper<ArticleComment>().eq("article_id", articleId).eq("comment_id", parentId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChild所依赖的Article:id=%s或ArticleComment:id=%s不存在", articleId, parentId)));
+
+        LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
+        Long count = articleCommentMapper.selectCount(queryWrapper.eq(ArticleComment::getArticleId, articleId).eq(ArticleComment::getCommentId, parentId));
+        String message = "\nArticleCommentChild所依赖的ArticleComment不存在,\narticleId=" + articleId + ",\nparentId=" + parentId;
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(message));
 
         ArticleCommentChild articleCommentChild = new ArticleCommentChild();
         BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
         articleCommentChild.setChildToChild(false);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        articleCommentChild.setUid(uid);
+        articleCommentChild.setAvatar(avatar);
+        articleCommentChild.setNickname(nickname);
         baseMapper.insert(articleCommentChild);
     }
 
@@ -78,21 +85,38 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         Long articleId = articleCommentChildDTO.getArticleId();
         Long parentId = articleCommentChildDTO.getParentId();
         Long childTarget = articleCommentChildDTO.getChildTarget();
-        Long count = query().eq("article_id", articleId).eq("parent_id", parentId).eq("comment_id", childTarget).count();
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleCommentChild所依赖的Article:id=%s或ArticleComment:id=%s或ArticleCommentChild:id=%s不存在", articleId, parentId, childTarget)));
+
+        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        Long count = baseMapper.selectCount(queryWrapper.eq(ArticleCommentChild::getArticleId, articleId)
+                .eq(ArticleCommentChild::getParentId, parentId).eq(ArticleCommentChild::getUid, childTarget));
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException("ArticleCommentChild所依赖的ArticleCommentChild不存在"));
 
         ArticleCommentChild articleCommentChild = new ArticleCommentChild();
         BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
         articleCommentChild.setChildToChild(true);
+        // todo:考虑是否需要将两次请求打包
+        String childTargetName = tokenFeignService.getNickname(childTarget);
+        articleCommentChild.setChildTargetName(childTargetName);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        articleCommentChild.setUid(uid);
+        articleCommentChild.setAvatar(avatar);
+        articleCommentChild.setNickname(nickname);
         baseMapper.insert(articleCommentChild);
     }
 
     @Override
     public PageInfo<ArticleCommentChildBO> list(Long commentId, Integer page, Integer size) {
+        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
         PageHelper.startPage(page, size);
-        List<ArticleCommentChild> commentChildren = query().select("comment_id","uid","avatar","nickname",
-                "child_to_child","child_target","child_target_name","content","created_time")
-                .eq("parent_id", commentId).list();
+        List<ArticleCommentChild> commentChildren = baseMapper.selectList(queryWrapper.select(ArticleCommentChild::getCommentId,
+                ArticleCommentChild::getUid,ArticleCommentChild::getAvatar,ArticleCommentChild::getNickname, ArticleCommentChild::getChildToChild,
+                ArticleCommentChild::getChildTarget,ArticleCommentChild::getChildTargetName,ArticleCommentChild::getContent,ArticleCommentChild::getCreatedTime)
+                .eq(ArticleCommentChild::getParentId, commentId));
+
         PageInfo<ArticleCommentChild> childPageInfo = PageInfo.of(commentChildren);
         List<ArticleCommentChildBO> childBOList = commentChildren.stream().map(child -> {
             ArticleCommentChildBO childBO = new ArticleCommentChildBO();
@@ -126,9 +150,25 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
     }
 
     @Override
+    public void dislike(Long commentId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章子评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
+        // 查询文章id
+        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
+        Long articleId = articleCommentChild.getArticleId();
+        messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
+    }
+
+    @Override
     public void remove(Long commentId) {
         long uid = tokenFeignService.getUid();
-        int delete = baseMapper.delete(new QueryWrapper<ArticleCommentChild>().eq("comment_id", commentId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有ArticleCommentChild删除权限,commentId:%s,uid:%s", commentId, uid)));
+        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        int delete = baseMapper.delete(queryWrapper.eq(ArticleCommentChild::getCommentId, commentId).eq(ArticleCommentChild::getUid, uid));
+        String message = "\n没有ArticleCommentChild删除权限,\ncommentId=" + commentId + ",\nuid=" + uid;
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
     }
 }

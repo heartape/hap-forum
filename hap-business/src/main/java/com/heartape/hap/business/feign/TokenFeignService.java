@@ -12,6 +12,9 @@ public interface TokenFeignService {
     @GetMapping("/api/oauth/uid")
     Result getUid(@RequestHeader(HttpConstant.HEADER_TOKEN) String token);
 
+    @GetMapping("/api/oauth/nickname")
+    Result getNickname(Long uid);
+
     @GetMapping("/api/oauth/token")
     Result getTokenInfo(@RequestHeader(HttpConstant.HEADER_TOKEN) String token);
 }

@@ -1,5 +1,6 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
@@ -255,10 +256,13 @@ public class MessageNotificationServiceImpl extends ServiceImpl<MessageNotificat
     @Override
     public PageInfo<MessageNotificationBO> list(Integer pageNum, Integer pageSize) {
         Long targetUid = tokenFeignService.getUid();
+
+        LambdaQueryWrapper<MessageNotification> queryWrapper = new QueryWrapper<MessageNotification>().lambda();
+        queryWrapper
+                .select(MessageNotification::getMessageId, MessageNotification::getUid, MessageNotification::getNickname, MessageNotification::getMainId, MessageNotification::getMainType, MessageNotification::getAction, MessageNotification::getTargetName, MessageNotification::getCreatedTime)
+                .eq(MessageNotification::getTargetUid, targetUid);
         PageHelper.startPage(pageNum, pageSize);
-        List<MessageNotification> messageNotifications = query()
-                .select("message_id", "uid", "nickname", "main_id", "main_type", "action", "target_name", "created_time")
-                .eq("target_uid", targetUid).list();
+        List<MessageNotification> messageNotifications = baseMapper.selectList(queryWrapper);
         PageInfo<MessageNotification> pageInfo = PageInfo.of(messageNotifications);
         PageInfo<MessageNotificationBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);

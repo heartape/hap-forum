@@ -66,11 +66,21 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     @Override
     public void create(ArticleCommentDTO articleCommentDTO) {
         Long articleId = articleCommentDTO.getArticleId();
-        Long count = articleMapper.selectCount(new QueryWrapper<Article>().eq("article_id", articleId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("ArticleComment所依赖的Article:id=%s不存在", articleId)));
+        LambdaQueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().lambda();
+        Long count = articleMapper.selectCount(queryWrapper.eq(Article::getArticleId, articleId));
+        String message = "\nArticleComment所依赖的Article不存在:\narticleId=" + articleId;
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(message));
 
         ArticleComment articleComment = new ArticleComment();
         BeanUtils.copyProperties(articleCommentDTO, articleComment);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        articleComment.setUid(uid);
+        articleComment.setAvatar(avatar);
+        articleComment.setNickname(nickname);
         this.baseMapper.insert(articleComment);
     }
 
@@ -111,10 +121,28 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     }
 
     @Override
+    public void dislike(Long commentId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = articleCommentLikeStatistics.setPositiveOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("文章评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
+        // 查询文章id
+        LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
+        ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
+        Long articleId = articleComment.getArticleId();
+        messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
+    }
+
+    @Override
     public void removeOne(Long commentId) {
         long uid = tokenFeignService.getUid();
-        int delete = baseMapper.delete(new QueryWrapper<ArticleComment>().eq("comment_id", commentId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有删除权限,commentId:%s,uid:%s", commentId, uid)));
-        articleCommentChildMapper.delete(new QueryWrapper<ArticleCommentChild>().eq("parent_id", commentId));
+        LambdaQueryWrapper<ArticleComment> articleCommentWrapper = new QueryWrapper<ArticleComment>().lambda();
+        int delete = baseMapper.delete(articleCommentWrapper.eq(ArticleComment::getCommentId, commentId).eq(ArticleComment::getUid, uid));
+        String message = "\n没有删除权限,\ncommentId:" + commentId + ",\nuid:" + uid;
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
+
+        LambdaQueryWrapper<ArticleCommentChild> articleCommentChildWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        articleCommentChildMapper.delete(articleCommentChildWrapper.eq(ArticleCommentChild::getParentId, commentId));
     }
 }

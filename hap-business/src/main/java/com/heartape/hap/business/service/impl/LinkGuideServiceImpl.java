@@ -1,5 +1,7 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.heartape.hap.business.entity.LinkGuide;
 import com.heartape.hap.business.entity.bo.LinkGuideBO;
@@ -25,9 +27,11 @@ public class LinkGuideServiceImpl extends ServiceImpl<LinkGuideMapper, LinkGuide
 
     @Override
     public List<LinkGuideBO> showList(Integer page, Integer size) {
+        LambdaQueryWrapper<LinkGuide> queryWrapper = new QueryWrapper<LinkGuide>().lambda();
+        queryWrapper.select(LinkGuide::getGuideId, LinkGuide::getTitle, LinkGuide::getPath).orderByDesc(LinkGuide::getTopping).orderByDesc(LinkGuide::getSequence);
         PageHelper.startPage(page,size);
         // todo:现根据top,order排序,再根据热度进行排序
-        List<LinkGuide> list = query().select("guide_id", "title", "path").orderByDesc("topping", "sequence").list();
+        List<LinkGuide> list = baseMapper.selectList(queryWrapper);
         return list.stream().map(linkGuide -> {
             LinkGuideBO linkGuideBO = new LinkGuideBO();
             BeanUtils.copyProperties(linkGuide, linkGuideBO);

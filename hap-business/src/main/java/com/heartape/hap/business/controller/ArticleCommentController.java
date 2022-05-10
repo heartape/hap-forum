@@ -54,6 +54,13 @@ public class ArticleCommentController {
         return Result.success();
     }
 
+    @PutMapping("/dislike")
+    @ApiOperation("点踩文章评论")
+    public Result dislike(@RequestParam Long commentId) {
+        articleCommentService.dislike(commentId);
+        return Result.success();
+    }
+
     @DeleteMapping
     @ApiOperation("删除文章评论")
     public Result remove(@RequestParam Long commentId) {

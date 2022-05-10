@@ -47,8 +47,15 @@ public class DiscussCommentController {
 
     @PutMapping("/like")
     @ApiOperation("点赞文章")
-    public Result like(@RequestParam Long discussId) {
-        discussCommentService.like(discussId);
+    public Result like(@RequestParam Long commentId) {
+        discussCommentService.like(commentId);
+        return Result.success();
+    }
+
+    @PutMapping("/dislike")
+    @ApiOperation("点踩文章")
+    public Result dislike(@RequestParam Long commentId) {
+        discussCommentService.dislike(commentId);
         return Result.success();
     }
 

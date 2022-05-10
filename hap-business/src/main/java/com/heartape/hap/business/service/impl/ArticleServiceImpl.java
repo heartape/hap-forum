@@ -1,5 +1,6 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -73,17 +74,29 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String s = Jsoup.clean(content, Safelist.none());
         String ignoreBlank = stringTransformUtils.IgnoreBlank(s);
         int length = ignoreBlank.length();
-        assertUtils.businessState(length > 100, new ParamIsInvalidException(String.format("文章长度低于指定范围,长度:%s,内容:%s", length, ignoreBlank)));
+        String message = "\n文章长度低于指定范围:\n长度=" + length + "\n内容=" + length;
+        assertUtils.businessState(length > 100, new ParamIsInvalidException(message));
         String simpleContent = ignoreBlank.substring(0, 100);
         article.setSimpleContent(simpleContent);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        String profile = tokenInfo.getProfile();
+        article.setUid(uid);
+        article.setAvatar(avatar);
+        article.setNickname(nickname);
+        article.setProfile(profile);
         this.baseMapper.insert(article);
     }
 
     @Override
     public PageInfo<ArticleSimpleBO> list(Integer page, Integer size) {
+        LambdaQueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().lambda();
         PageHelper.startPage(page, size);
-        List<Article> list = query().select("article_id","is_picture","main_picture","title","simple_content","created_time")
-                .orderByDesc("created_time").list();
+        List<Article> list = baseMapper.selectList(queryWrapper.select(Article::getArticleId,Article::getIsPicture,Article::getMainPicture,
+                Article::getTitle,Article::getSimpleContent,Article::getCreatedTime).orderByDesc(Article::getCreatedTime));
         PageInfo<Article> pageInfo = PageInfo.of(list);
 
         List<ArticleSimpleBO> collect = list.stream().map(article -> {
@@ -145,10 +158,15 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     @Override
     public void remove(Long articleId) {
         long uid = tokenFeignService.getUid();
-        int delete = baseMapper.delete(new QueryWrapper<Article>().eq("article_id", articleId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有删除权限,articleId:%s,uid:%s", articleId, uid)));
+        LambdaQueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().lambda();
+        int delete = baseMapper.delete(queryWrapper.eq(Article::getArticleId, articleId).eq(Article::getUid, uid));
+        String message = "\n没有删除权限,\narticleId=" + articleId +",\nuid=" + uid;
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
         // todo:rabbitmq异步删除评论
-        articleCommentMapper.delete(new QueryWrapper<ArticleComment>().eq("article_id", articleId));
-        articleCommentChildMapper.delete(new QueryWrapper<ArticleCommentChild>().eq("article_id", articleId));
+        LambdaQueryWrapper<ArticleComment> articleCommentWrapper = new QueryWrapper<ArticleComment>().lambda();
+        articleCommentMapper.delete(articleCommentWrapper.eq(ArticleComment::getArticleId, articleId));
+
+        LambdaQueryWrapper<ArticleCommentChild> articleCommentChildWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+        articleCommentChildMapper.delete(articleCommentChildWrapper.eq(ArticleCommentChild::getArticleId, articleId));
     }
 }

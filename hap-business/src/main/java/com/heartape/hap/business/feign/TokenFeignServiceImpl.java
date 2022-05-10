@@ -30,6 +30,14 @@ public class TokenFeignServiceImpl {
         return JSONObject.parseObject(data, Long.class);
     }
 
+    public String getNickname(Long uid) {
+        Result result = tokenFeignService.getNickname(uid);
+        String path = "/api/oauth/nickname";
+        check(result, path);
+        String data = new Gson().toJson(result.getData());
+        return JSONObject.parseObject(data, String.class);
+    }
+
     public HapUserDetails getTokenInfo() {
         String token = httpUtils.getToken(httpUtils.getRequest());
         Result result = tokenFeignService.getTokenInfo(token);
@@ -40,7 +48,9 @@ public class TokenFeignServiceImpl {
     }
 
     private void check(Result result, String path) {
-        assertUtils.businessState(result != null && result.getCode() == 1, new InterfaceInnerInvokeException(String.format("远程调用%s接口失败",path)));
-        assertUtils.businessState(result.getData() != null, new InterfaceInnerInvokeException(String.format("远程调用%s接口数据为空",path)));
+        String message1 = "远程调用接口失败, path=" + path;
+        assertUtils.businessState(result != null && result.getCode() == 1, new InterfaceInnerInvokeException(message1));
+        String message2 = "远程调用接口数据为空, path=" + path;
+        assertUtils.businessState(result.getData() != null, new InterfaceInnerInvokeException(message2));
     }
 }

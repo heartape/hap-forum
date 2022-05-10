@@ -1,5 +1,7 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.QueryChainWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -30,12 +32,12 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
 
     @Override
     public PageInfo<SimpleLabelBO> list(String name, Integer page, Integer size) {
-        PageHelper.startPage(page, size);
-        QueryChainWrapper<Label> query = query();
+        LambdaQueryWrapper<Label> queryWrapper = new QueryWrapper<Label>().lambda();
         if (StringUtils.hasText(name)) {
-            query = query.likeRight("name", name);
+            queryWrapper.likeRight(Label::getName, name);
         }
-        List<Label> labels = query.select("label_id", "name").list();
+        PageHelper.startPage(page, size);
+        List<Label> labels = baseMapper.selectList(queryWrapper.select(Label::getLabelId, Label::getName));
         PageInfo<Label> pageInfo = PageInfo.of(labels);
         PageInfo<SimpleLabelBO> boPageInfo = new PageInfo<>();
         BeanUtils.copyProperties(pageInfo, boPageInfo);
@@ -51,7 +53,8 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
     @Override
     public LabelBO detail(Long labelId) {
         // todo:改为自联结查询
-        Label label = query().eq("label_id", labelId).one();
+        LambdaQueryWrapper<Label> queryWrapper = new QueryWrapper<Label>().lambda();
+        Label label = baseMapper.selectOne(queryWrapper.eq(Label::getLabelId, labelId));
         LabelBO labelBO = new LabelBO();
         BeanUtils.copyProperties(label, labelBO);
         return labelBO;

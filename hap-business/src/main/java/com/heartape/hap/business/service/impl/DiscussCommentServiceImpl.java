@@ -6,7 +6,6 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
-import com.heartape.hap.business.entity.ArticleComment;
 import com.heartape.hap.business.entity.DiscussComment;
 import com.heartape.hap.business.entity.DiscussCommentChild;
 import com.heartape.hap.business.entity.TopicDiscuss;
@@ -67,11 +66,22 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         // 验证讨论是否存在
         Long topicId = discussCommentDTO.getTopicId();
         Long discussId = discussCommentDTO.getDiscussId();
-        Long count = topicDiscussMapper.selectCount(new QueryWrapper<TopicDiscuss>().eq("topic_id", topicId).eq("discuss_id", discussId));
-        assertUtils.businessState(count == 1, new RelyDataNotExistedException(String.format("TopicDiscuss所依赖的Topic:id=%s或Discuss:id=%s不存在", topicId, discussId)));
+
+        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+        Long count = topicDiscussMapper.selectCount(queryWrapper.eq(TopicDiscuss::getTopicId, topicId).eq(TopicDiscuss::getDiscussId, discussId));
+        String message = "\nDiscussComment所依赖的TopicDiscuss不存在,\ntopicId=" + topicId +",\ndiscussId=" + discussId;
+        assertUtils.businessState(count == 1, new RelyDataNotExistedException(message));
 
         DiscussComment discussComment = new DiscussComment();
         BeanUtils.copyProperties(discussCommentDTO, discussComment);
+
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String avatar = tokenInfo.getAvatar();
+        String nickname = tokenInfo.getNickname();
+        discussComment.setUid(uid);
+        discussComment.setAvatar(avatar);
+        discussComment.setNickname(nickname);
         baseMapper.insert(discussComment);
     }
 
@@ -114,10 +124,30 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     }
 
     @Override
+    public void dislike(Long commentId) {
+        HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
+        Long uid = tokenInfo.getUid();
+        String nickname = tokenInfo.getNickname();
+        boolean b = discussCommentLikeStatistics.setPositiveOperate(commentId, uid);
+        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
+        // 查询文章id
+        LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
+        DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
+        Long topicId = discussComment.getTopicId();
+        messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+    }
+
+    @Override
     public void remove(Long commentId) {
         long uid = tokenFeignService.getUid();
-        int delete = baseMapper.delete(new QueryWrapper<DiscussComment>().eq("comment_id", commentId).eq("uid", uid));
-        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(String.format("没有DiscussComment删除权限,commentId:%s,uid:%s", commentId, uid)));
-        discussCommentChildMapper.delete(new QueryWrapper<DiscussCommentChild>().eq("parent_id", commentId));
+
+        LambdaQueryWrapper<DiscussComment> discussCommentWrapper = new QueryWrapper<DiscussComment>().lambda();
+        int delete = baseMapper.delete(discussCommentWrapper.eq(DiscussComment::getCommentId, commentId).eq(DiscussComment::getUid, uid));
+
+        String message = "\n没有DiscussComment删除权限,\ncommentId=" + commentId + ",\nuid=" + uid;
+        assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
+
+        LambdaQueryWrapper<DiscussCommentChild> discussCommentChildWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+        discussCommentChildMapper.delete(discussCommentChildWrapper.eq(DiscussCommentChild::getParentId, commentId));
     }
 }

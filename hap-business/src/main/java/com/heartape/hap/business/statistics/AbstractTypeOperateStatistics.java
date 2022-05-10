@@ -150,15 +150,7 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 记录资源受到的用户操作,返回true表示操作成功
      */
     private boolean setOperate(String key, long member, TypeEnum typeEnum){
-        String script = "local key = KEYS[1]\n" +
-                "local member = ARGV[1]\n" +
-                "local score = ARGV[2]\n" +
-                "if (redis.call(\"zscore\", key, member) ~= score) then\n" +
-                "    redis.call(\"zadd\", key, score, member)\n" +
-                "    \treturn true\n" +
-                "else\n" +
-                "    return false\n" +
-                "end";
+        String script = "local key = KEYS[1]\n local member = ARGV[1]\n local score = ARGV[2]\n if (redis.call(\"zscore\", key, member) ~= score) then\n redis.call(\"zadd\", key, score, member)\n \treturn true\n else\n return false\n end";
         List<String> keys = new ArrayList<>();
         keys.add(key);
         // 因为redis中小数和

@@ -32,6 +32,11 @@ public interface IArticleCommentService extends IService<ArticleComment> {
     void like(Long commentId);
 
     /**
+     * 点踩
+     */
+    void dislike(Long commentId);
+
+    /**
      * 删除父评论
      */
     void removeOne(Long commentId);

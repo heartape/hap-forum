@@ -1,5 +1,6 @@
 package com.heartape.hap.business.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -50,10 +51,13 @@ public class PersonalCenterManageServiceImpl implements IPersonalCenterManageSer
         LocalDate startTime = personalCenterManageDTO.getStartTime();
         LocalDate endTime = personalCenterManageDTO.getEndTime();
         long uid = tokenFeignService.getUid();
-        QueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().eq("uid", uid).orderByDesc("created_time")
-                .select("article_id", "title", "simple_content", "created_time");
+
+        LambdaQueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().lambda();
+        queryWrapper
+                .eq(Article::getUid, uid).orderByDesc(Article::getCreatedTime)
+                .select(Article::getArticleId, Article::getTitle, Article::getSimpleContent, Article::getCreatedTime);
         if (startTime != null || endTime != null) {
-            queryWrapper.between("created_time", startTime, endTime);
+            queryWrapper.between(Article::getCreatedTime, startTime, endTime);
         }
         PageHelper.startPage(personalCenterManageDTO.getPageNum(), personalCenterManageDTO.getPageSize());
         List<Article> articles = articleMapper.selectList(queryWrapper);
@@ -84,10 +88,13 @@ public class PersonalCenterManageServiceImpl implements IPersonalCenterManageSer
         LocalDate startTime = personalCenterManageDTO.getStartTime();
         LocalDate endTime = personalCenterManageDTO.getEndTime();
         long uid = tokenFeignService.getUid();
-        QueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().eq("uid", uid).orderByDesc("created_time")
-                .select("topic_id", "title", "simple_description", "created_time");
+
+        LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
+        queryWrapper
+                .select(Topic::getTopicId, Topic::getTitle, Topic::getSimpleDescription, Topic::getCreatedTime)
+                .eq(Topic::getUid, uid).orderByDesc(Topic::getCreatedTime);
         if (startTime != null || endTime != null) {
-            queryWrapper.between("created_time", startTime, endTime);
+            queryWrapper.between(Topic::getCreatedTime, startTime, endTime);
         }
         PageHelper.startPage(personalCenterManageDTO.getPageNum(), personalCenterManageDTO.getPageSize());
         List<Topic> articles = topicMapper.selectList(queryWrapper);
@@ -118,11 +125,7 @@ public class PersonalCenterManageServiceImpl implements IPersonalCenterManageSer
         LocalDate startTime = personalCenterManageDTO.getStartTime();
         LocalDate endTime = personalCenterManageDTO.getEndTime();
         long uid = tokenFeignService.getUid();
-        QueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().eq("uid", uid).orderByDesc("created_time")
-                .select("discuss_id", "title", "content", "created_time");
-        if (startTime != null || endTime != null) {
-            queryWrapper.between("created_time", startTime, endTime);
-        }
+
         PageHelper.startPage(personalCenterManageDTO.getPageNum(), personalCenterManageDTO.getPageSize());
         List<ContentManage> articles = contentManageMapper.selectDiscussList(uid, startTime, endTime);
         PageInfo<ContentManage> pageInfo = PageInfo.of(articles);
@@ -176,7 +179,9 @@ public class PersonalCenterManageServiceImpl implements IPersonalCenterManageSer
         BeanUtils.copyProperties(pageInfo, boPageInfo);
         List<Long> topicIds = discussList.stream().map(CommentManage::getTitleId).distinct().collect(Collectors.toList());
         // 当前查出的讨论的父话题,避免3表联查
-        List<Topic> topics = topicMapper.selectList(new QueryWrapper<Topic>().in("topic_id", topicIds).select("topic_id", "title"));
+        LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
+        queryWrapper.select(Topic::getTopicId, Topic::getTitle).in(Topic::getTopicId, topicIds);
+        List<Topic> topics = topicMapper.selectList(queryWrapper);
         List<CommentManageBO> boList = discussList.stream().map(commentManage -> {
             CommentManageBO commentManageBO = new CommentManageBO();
             BeanUtils.copyProperties(commentManage, commentManageBO);
