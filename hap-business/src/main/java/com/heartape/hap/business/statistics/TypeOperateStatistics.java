@@ -32,12 +32,12 @@ public interface TypeOperateStatistics {
     boolean getNegativeOperate(long sourceId, long uid);
 
     /**
-     * 资源积极操作是否被记录
+     * 资源积极操作数
      */
     int getPositiveOperateNumber(long sourceId);
 
     /**
-     * 资源消极操作是否被记录
+     * 资源消极操作数
      */
     int getNegativeOperateNumber(long sourceId);
 

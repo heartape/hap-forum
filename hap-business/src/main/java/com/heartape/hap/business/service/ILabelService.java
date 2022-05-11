@@ -5,6 +5,7 @@ import com.heartape.hap.business.entity.Label;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.business.entity.bo.LabelBO;
 import com.heartape.hap.business.entity.bo.SimpleLabelBO;
+import com.heartape.hap.business.entity.ro.LabelChildRO;
 import com.heartape.hap.business.entity.ro.LabelRO;
 
 /**
@@ -31,4 +32,6 @@ public interface ILabelService extends IService<Label> {
      * 创建标签
      */
     void create(LabelRO label);
+
+    void createChild(LabelChildRO labelChildRO);
 }

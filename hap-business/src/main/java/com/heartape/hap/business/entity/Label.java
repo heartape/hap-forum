@@ -25,11 +25,12 @@ public class Label extends BaseEntity {
     @TableId(value = "label_id", type = IdType.AUTO)
     private Long labelId;
 
-    @ApiModelProperty("最多3级")
+    /** 最多2级，1级和2级一对多 */
+    @ApiModelProperty("标签等级")
     private Integer level;
 
-    @TableField(value = "parent_id",typeHandler = JacksonTypeHandler.class)
-    private List<Long> parentId;
+    @TableField(value = "parent_id")
+    private Long parentId;
 
     private String name;
 

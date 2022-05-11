@@ -98,7 +98,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         DiscussCommentChild discussCommentChild = new DiscussCommentChild();
         BeanUtils.copyProperties(discussCommentChildDTO, discussCommentChild);
         discussCommentChild.setChildToChild(true);
-        // todo:考虑是否需要将两次请求打包
+        // 远程调用
         String childTargetName = tokenFeignService.getNickname(childTarget);
         discussCommentChild.setChildTargetName(childTargetName);
 

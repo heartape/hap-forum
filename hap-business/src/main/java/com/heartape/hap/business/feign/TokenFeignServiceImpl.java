@@ -32,7 +32,7 @@ public class TokenFeignServiceImpl {
 
     public String getNickname(Long uid) {
         Result result = tokenFeignService.getNickname(uid);
-        String path = "/api/oauth/nickname";
+        String path = "/api/creator/info/nickname";
         check(result, path);
         String data = new Gson().toJson(result.getData());
         return JSONObject.parseObject(data, String.class);

@@ -20,6 +20,7 @@ import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
+import com.heartape.hap.business.statistics.ArticleHotStatistics;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -65,6 +66,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Autowired
     private ArticleLikeStatistics articleLikeStatistics;
+
+    @Autowired
+    private ArticleHotStatistics articleHotStatistics;
 
     @Override
     public void create(ArticleDTO articleDTO) {
@@ -162,6 +166,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         int delete = baseMapper.delete(queryWrapper.eq(Article::getArticleId, articleId).eq(Article::getUid, uid));
         String message = "\n没有删除权限,\narticleId=" + articleId +",\nuid=" + uid;
         assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
+        // todo:删除点赞，热度等数据
         // todo:rabbitmq异步删除评论
         LambdaQueryWrapper<ArticleComment> articleCommentWrapper = new QueryWrapper<ArticleComment>().lambda();
         articleCommentMapper.delete(articleCommentWrapper.eq(ArticleComment::getArticleId, articleId));

@@ -3,6 +3,7 @@ package com.heartape.hap.business.controller;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.business.entity.bo.LabelBO;
 import com.heartape.hap.business.entity.bo.SimpleLabelBO;
+import com.heartape.hap.business.entity.ro.LabelChildRO;
 import com.heartape.hap.business.entity.ro.LabelRO;
 import com.heartape.hap.business.response.Result;
 import com.heartape.hap.business.service.ILabelService;
@@ -48,6 +49,16 @@ public class LabelController {
     @ApiOperation("创建标签")
     public Result create(@RequestBody LabelRO label) {
         labelService.create(label);
+        return Result.success();
+    }
+
+    /**
+     * todo:拆分到后台管理模块
+     */
+    @PostMapping("/child")
+    @ApiOperation("创建子标签")
+    public Result createChild(@RequestBody LabelChildRO labelChildRO) {
+        labelService.createChild(labelChildRO);
         return Result.success();
     }
 }

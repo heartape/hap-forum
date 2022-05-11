@@ -94,7 +94,7 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         ArticleCommentChild articleCommentChild = new ArticleCommentChild();
         BeanUtils.copyProperties(articleCommentChildDTO, articleCommentChild);
         articleCommentChild.setChildToChild(true);
-        // todo:考虑是否需要将两次请求打包
+        // 远程调用获取childTargetName
         String childTargetName = tokenFeignService.getNickname(childTarget);
         articleCommentChild.setChildTargetName(childTargetName);
 

@@ -16,7 +16,7 @@ public class HapLogoutSuccessHandler implements ServerLogoutSuccessHandler {
     public Mono<Void> onLogoutSuccess(WebFilterExchange exchange, Authentication authentication) {
         return Mono.defer(() -> Mono.just(exchange.getExchange().getResponse()).flatMap(response -> {
             DataBufferFactory dataBufferFactory = response.bufferFactory();
-            // todo:删除token
+            // todo:退出删除token
             Result result = Result.success();
             DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
             return response.writeWith(Mono.just(dataBuffer));
