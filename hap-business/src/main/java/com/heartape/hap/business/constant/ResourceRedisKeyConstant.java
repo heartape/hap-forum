@@ -30,10 +30,10 @@ public class ResourceRedisKeyConstant {
 
     // hot
     public final static String HOT_ARTICLE = HOT + ARTICLE;
-    public final static String HOT_ARTICLE_COMMENT = HOT + ARTICLE_COMMENT;
-    public final static String HOT_ARTICLE_COMMENT_CHILD = HOT + ARTICLE_COMMENT_CHILD;
+    public final static String HOT_ARTICLE_COMMENT = HOT + ARTICLE_COMMENT + AND;
+    public final static String HOT_ARTICLE_COMMENT_CHILD = HOT + ARTICLE_COMMENT_CHILD + AND;
     public final static String HOT_TOPIC = HOT + TOPIC;
-    public final static String HOT_DISCUSS = HOT + DISCUSS;
-    public final static String HOT_DISCUSS_COMMENT = HOT + DISCUSS_COMMENT;
-    public final static String HOT_DISCUSS_COMMENT_CHILD = HOT + DISCUSS_COMMENT_CHILD;
+    public final static String HOT_DISCUSS = HOT + DISCUSS + AND;
+    public final static String HOT_DISCUSS_COMMENT = HOT + DISCUSS_COMMENT + AND;
+    public final static String HOT_DISCUSS_COMMENT_CHILD = HOT + DISCUSS_COMMENT_CHILD + AND;
 }

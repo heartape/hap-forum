@@ -3,7 +3,6 @@ package com.heartape.hap.business;
 import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
-import com.heartape.hap.business.statistics.ArticleHotStatistics;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,10 +23,14 @@ public class TypeOperateStatisticsTest {
         System.out.println(setNegativeOperate);
         boolean setNegativeOperate1 = articleLikeStatistics.setNegativeOperate(1L, 1L);
         System.out.println(setNegativeOperate1);
+        boolean getNegativeOperate = articleLikeStatistics.getNegativeOperate(1L, 1L);
+        System.out.println(getNegativeOperate);
         boolean setPositiveOperate = articleLikeStatistics.setPositiveOperate(1L, 1L);
         System.out.println(setPositiveOperate);
         boolean setPositiveOperate1 = articleLikeStatistics.setPositiveOperate(1L, 1L);
         System.out.println(setPositiveOperate1);
+        boolean getPositiveOperate = articleLikeStatistics.getPositiveOperate(1L, 1L);
+        System.out.println(getPositiveOperate);
     }
 
     @Test

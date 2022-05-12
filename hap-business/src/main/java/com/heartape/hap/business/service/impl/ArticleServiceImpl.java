@@ -20,7 +20,7 @@ import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
-import com.heartape.hap.business.statistics.ArticleHotStatistics;
+import com.heartape.hap.business.statistics.AbstractTopCumulativeOperateStatistics;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -68,7 +68,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private ArticleLikeStatistics articleLikeStatistics;
 
     @Autowired
-    private ArticleHotStatistics articleHotStatistics;
+    private AbstractTopCumulativeOperateStatistics abstractTopCumulativeOperateStatistics;
 
     @Override
     public void create(ArticleDTO articleDTO) {

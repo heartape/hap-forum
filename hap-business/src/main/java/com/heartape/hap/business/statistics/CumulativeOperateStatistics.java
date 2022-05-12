@@ -1,33 +1,47 @@
 package com.heartape.hap.business.statistics;
 
+import org.springframework.data.redis.core.ZSetOperations;
+
+import java.util.Set;
+
 /**
- * 数据累计操作统计
+ * 资源累计操作统计，如热度等可重复操作
  */
 public interface CumulativeOperateStatistics {
 
     /**
      * 资源被操作数
      */
-    int operateNumber(long sourceId);
+    int operateNumber(Long mainId, long sourceId);
 
     /**
-     * 记录资源操作
+     * 资源被操作数
      */
-    int operateIncrement(long sourceId, int delta);
+    int operateNumberAll(Long mainId);
+
+    /**
+     * 资源操作数增加
+     */
+    int operateIncrement(Long mainId, long sourceId, int delta);
+
+    /**
+     * 资源操作数减少
+     */
+    int operateDecrement(Long mainId, long sourceId, int delta);
 
     /**
      * 修改资源操作数倍数
      */
-    int operateMultipleIncrement(long sourceId, double delta);
+    int operateMultiple(Long mainId, long sourceId, double delta);
 
     /**
-     * 记录资源操作
+     * 根据资源操作数分页查询
      */
-    int operateDecrement(long sourceId, int delta);
+    Set<ZSetOperations.TypedTuple<Long>> operateNumberPage(Long mainId, int pageNum, int pageSize);
 
     /**
      * 移除资源受到的用户操作
      */
-    boolean removeOperate(long sourceId);
+    boolean removeOperate(Long mainId, long sourceId);
 
 }

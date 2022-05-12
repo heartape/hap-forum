@@ -1,5 +1,8 @@
 package com.heartape.hap.business.statistics;
 
+/**
+ * 资源操作统计，如关注等单次2状态不可重复操作
+ */
 public interface TypeOperateStatistics {
 
     enum TypeEnum {

@@ -1,9 +1,9 @@
 package com.heartape.hap.business.statistics;
 
+/**
+ * 资源操作统计，如关注等单次单状态不可重复操作
+ */
 public interface OperateStatistics {
-
-    /** 用于拼接redis key */
-    String UID = "uid";
 
     /**
      * 资源操作是否被记录

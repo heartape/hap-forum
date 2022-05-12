@@ -18,7 +18,12 @@ public class DiscussCommentLikeStatistics extends AbstractTypeOperateStatistics 
     }
 
     @Override
-    public String getKeyHeader() {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT;
+    public String getKeyHeader(long sourceId) {
+        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT + sourceId;
+    }
+
+    @Override
+    public String getUserKeyHeader(long uid) {
+        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT + "uid:" + uid;
     }
 }

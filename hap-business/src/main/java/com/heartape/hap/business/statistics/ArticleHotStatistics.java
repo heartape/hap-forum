@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ArticleHotStatistics extends AbstractCumulativeOperateStatistics {
+public class ArticleHotStatistics extends AbstractTopCumulativeOperateStatistics {
 
     @Autowired
     private RedisTemplate<String,Long> longRedisTemplate;

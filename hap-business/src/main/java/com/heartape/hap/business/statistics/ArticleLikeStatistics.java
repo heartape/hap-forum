@@ -18,7 +18,12 @@ public class ArticleLikeStatistics extends AbstractTypeOperateStatistics {
     }
 
     @Override
-    public String getKeyHeader() {
-        return ResourceRedisKeyConstant.LIKE_ARTICLE;
+    public String getKeyHeader(long sourceId) {
+        return ResourceRedisKeyConstant.LIKE_ARTICLE + sourceId;
+    }
+
+    @Override
+    public String getUserKeyHeader(long uid) {
+        return ResourceRedisKeyConstant.LIKE_ARTICLE + "uid:" + uid;
     }
 }
