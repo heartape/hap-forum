@@ -55,15 +55,15 @@ public class ArticleController {
     @PutMapping("/like")
     @ApiOperation("点赞文章")
     public Result like(@RequestParam Long articleId) {
-        articleService.like(articleId);
-        return Result.success();
+        boolean like = articleService.like(articleId);
+        return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("踩文章")
     public Result dislike(@RequestParam Long articleId) {
-        articleService.dislike(articleId);
-        return Result.success();
+        boolean dislike = articleService.dislike(articleId);
+        return Result.success(dislike);
     }
 
     @DeleteMapping

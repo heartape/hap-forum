@@ -47,15 +47,15 @@ public class TopicDiscussController {
     @PutMapping("/like")
     @ApiOperation("点赞讨论")
     public Result like(@RequestParam Long discussId) {
-        topicDiscussService.like(discussId);
-        return Result.success();
+        boolean like = topicDiscussService.like(discussId);
+        return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("点赞讨论")
     public Result dislike(@RequestParam Long discussId) {
-        topicDiscussService.dislike(discussId);
-        return Result.success();
+        boolean dislike = topicDiscussService.dislike(discussId);
+        return Result.success(dislike);
     }
 
     @DeleteMapping

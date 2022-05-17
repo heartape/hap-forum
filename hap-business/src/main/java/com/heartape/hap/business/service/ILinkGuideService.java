@@ -17,9 +17,14 @@ import java.util.List;
 public interface ILinkGuideService extends IService<LinkGuide> {
 
     /**
+     * 热点导航
+     */
+    List<LinkGuideBO> showHot();
+    /**
      * 查询链接导航列表
      */
     List<LinkGuideBO> showList(Integer page, Integer size);
 
     void create();
+
 }

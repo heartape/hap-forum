@@ -61,4 +61,21 @@ public class LabelController {
         labelService.createChild(labelChildRO);
         return Result.success();
     }
+
+    @PostMapping("/follow")
+    @ApiOperation("关注标签")
+    public Result follow(@RequestParam Long labelId) {
+        boolean follow = labelService.follow(labelId);
+        return Result.success(follow);
+    }
+
+    /**
+     * todo:拆分到后台管理模块
+     */
+    @DeleteMapping
+    @ApiOperation("删除标签")
+    public Result remove(@RequestParam Long labelId) {
+        labelService.removeById(labelId);
+        return Result.success();
+    }
 }

@@ -29,12 +29,12 @@ public interface IArticleCommentService extends IService<ArticleComment> {
     /**
      * 点赞
      */
-    void like(Long commentId);
+    boolean like(Long commentId);
 
     /**
      * 点踩
      */
-    void dislike(Long commentId);
+    boolean dislike(Long commentId);
 
     /**
      * 删除父评论

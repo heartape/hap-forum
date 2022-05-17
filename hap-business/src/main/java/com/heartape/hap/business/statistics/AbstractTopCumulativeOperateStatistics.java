@@ -1,7 +1,6 @@
 package com.heartape.hap.business.statistics;
 
 import org.springframework.data.redis.core.ZSetOperations;
-import org.springframework.stereotype.Component;
 
 import java.util.Set;
 

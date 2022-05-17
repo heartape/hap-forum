@@ -69,7 +69,7 @@ public class PrivateLetterServiceImpl extends ServiceImpl<PrivateLetterMapper, P
     @Override
     public PageInfo<PrivateLetterCreatorBO> creatorList(Integer pageNum, Integer pageSize) {
         Long targetUid = tokenFeignService.getUid();
-        // todo:过滤已被拉黑的用户
+        // todo:过滤已被拉黑的用户，创建用户关系表
         List<Long> blacklist = new ArrayList<>();
         blacklist.add(2L);
 

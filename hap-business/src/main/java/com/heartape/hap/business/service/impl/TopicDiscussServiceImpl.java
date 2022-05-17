@@ -11,7 +11,6 @@ import com.heartape.hap.business.entity.bo.TopicDiscussBO;
 import com.heartape.hap.business.entity.dto.TopicDiscussDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
-import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
@@ -21,9 +20,11 @@ import com.heartape.hap.business.mapper.TopicMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.ITopicDiscussService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.DiscussHotStatistics;
 import com.heartape.hap.business.statistics.DiscussLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import com.heartape.hap.business.utils.StringTransformUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.BeanUtils;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, TopicDiscuss> implements ITopicDiscussService {
 
     @Autowired
@@ -67,6 +69,9 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
 
     @Autowired
     private DiscussLikeStatistics discussLikeStatistics;
+
+    @Autowired
+    private DiscussHotStatistics discussHotStatistics;
 
     @Override
     public void create(TopicDiscussDTO topicDiscussDTO) {
@@ -97,6 +102,10 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         topicDiscuss.setNickname(nickname);
         topicDiscuss.setProfile(profile);
         baseMapper.insert(topicDiscuss);
+        // 热度
+        Long discussId = topicDiscuss.getDiscussId();
+        int hot = discussHotStatistics.operateIncrement(topicId, discussId, DiscussHotStatistics.INIT_HOT);
+        log.info("topicId:" + topicId + ",discussId:" + discussId + ",设置初始热度为" + hot);
     }
 
     @Override
@@ -122,31 +131,35 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     }
 
     @Override
-    public void like(Long discussId) {
+    public boolean like(Long discussId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussLikeStatistics.setPositiveOperate(discussId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论:" + discussId + ",用户:" + uid + "已经进行过点赞"));
-        // 查询话题id
-        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
-        TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
-        Long topicId = topicDiscuss.getTopicId();
-        messageNotificationProducer.likeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+        boolean positiveOperate = discussLikeStatistics.setPositiveOperate(discussId, uid);
+        if (positiveOperate) {
+            // 查询话题id
+            LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+            TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
+            Long topicId = topicDiscuss.getTopicId();
+            messageNotificationProducer.likeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+        }
+        return positiveOperate;
     }
 
     @Override
-    public void dislike(Long discussId) {
+    public boolean dislike(Long discussId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussLikeStatistics.setPositiveOperate(discussId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论:" + discussId + ",用户:" + uid + "已经进行过点踩"));
-        // 查询话题id
-        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
-        TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
-        Long topicId = topicDiscuss.getTopicId();
-        messageNotificationProducer.dislikeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+        boolean negativeOperate = discussLikeStatistics.setNegativeOperate(discussId, uid);
+        if (negativeOperate) {
+            // 查询话题id
+            LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+            TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
+            Long topicId = topicDiscuss.getTopicId();
+            messageNotificationProducer.dislikeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+        }
+        return negativeOperate;
     }
 
     @Override

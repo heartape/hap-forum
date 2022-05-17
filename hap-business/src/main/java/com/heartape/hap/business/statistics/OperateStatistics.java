@@ -1,37 +1,23 @@
 package com.heartape.hap.business.statistics;
 
 /**
- * 资源操作统计，如关注等单次单状态不可重复操作
+ * 资源操作单向统计，即不作sponsor和source双向的统计
  */
 public interface OperateStatistics {
 
     /**
-     * 资源操作是否被记录
+     * 资源操作时间戳,0表示不存在
      */
-    boolean getOperate(long sourceId, long uid);
+    long getOperate(long sponsorId, long sourceId);
 
     /**
      * 记录资源受到的用户操作,返回true表示操作成功
      */
-    boolean setOperate(long sourceId, long uid);
+    boolean setOperate(long sponsorId, long sourceId, long timestamp);
 
     /**
-     * 移除资源受到的用户操作,返回true表示操作成功
+     * 删除统计
      */
-    boolean removeOperate(long sourceId, long uid);
+    boolean removeOperate(long sponsorId);
 
-    /**
-     * 当前用户是否已经对目标资源进行操作
-     */
-    boolean getPeopleOperate(long uid, long sourceId);
-
-    /**
-     * 记录用户对目标资源的操作行为,返回true表示操作成功
-     */
-    boolean setPeopleOperate(long uid, long sourceId);
-
-    /**
-     * 移除用户对目标资源的操作行为,返回true表示操作成功
-     */
-    boolean removePeopleOperate(long uid, long sourceId);
 }

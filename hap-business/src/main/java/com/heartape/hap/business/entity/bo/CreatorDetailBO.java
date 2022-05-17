@@ -9,10 +9,10 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 调用远程接口获取用户token信息
+ * 用户主页数据
  */
 @Data
-public class CreatorBO {
+public class CreatorDetailBO {
     @JsonSerialize(using = ToStringSerializer.class)
     private Long uid;
 

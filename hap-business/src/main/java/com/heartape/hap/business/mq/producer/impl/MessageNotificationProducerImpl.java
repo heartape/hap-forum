@@ -19,6 +19,8 @@ public class MessageNotificationProducerImpl implements IMessageNotificationProd
 
     @Override
     public void likeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType) {
+        // todo:创建消息通知流水表，用于防止重复发送
+        // todo:未重复发送就增加热度
         String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_EXCHANGE;
         String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_ROUTING_KEY;
         MessageNotificationCreateDTO messageNotificationCreateDTO = create(uid, nickname, mainId, mainType, targetId, targetType, MessageNotificationActionEnum.LIKE);
@@ -27,6 +29,8 @@ public class MessageNotificationProducerImpl implements IMessageNotificationProd
 
     @Override
     public void dislikeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType) {
+        // todo:创建消息通知流水表，用于防止重复发送
+        // todo:未重复发送就增加热度
         String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_EXCHANGE;
         String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_ROUTING_KEY;
         MessageNotificationCreateDTO messageNotificationCreateDTO = create(uid, nickname, mainId, mainType, targetId, targetType, MessageNotificationActionEnum.DISLIKE);

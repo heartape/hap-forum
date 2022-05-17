@@ -5,11 +5,8 @@ package com.heartape.hap.business.constant;
  */
 public class ResourceRedisKeyConstant {
 
-    private final static String AND = ":";
-
-    // action
-    private final static String LIKE = "like:";
-    private final static String HOT = "hot:";
+    /** sponsorId:发起方id，即进行操作的一方，如点赞时的uid，收藏时的文件夹id */
+    public final static String SPONSOR = "s:";
 
     // resource
     private final static String ARTICLE = "a";
@@ -19,21 +16,31 @@ public class ResourceRedisKeyConstant {
     private final static String DISCUSS = "d";
     private final static String DISCUSS_COMMENT = "dc";
     private final static String DISCUSS_COMMENT_CHILD = "dcc";
+    private final static String LABEL = "l";
 
     // like
-    public final static String LIKE_ARTICLE = LIKE + ARTICLE + AND;
-    public final static String LIKE_ARTICLE_COMMENT = LIKE + ARTICLE_COMMENT + AND;
-    public final static String LIKE_ARTICLE_COMMENT_CHILD = LIKE + ARTICLE_COMMENT_CHILD + AND;
-    public final static String LIKE_DISCUSS = LIKE + DISCUSS + AND;
-    public final static String LIKE_DISCUSS_COMMENT = LIKE + DISCUSS_COMMENT + AND;
-    public final static String LIKE_DISCUSS_COMMENT_CHILD = LIKE + DISCUSS_COMMENT_CHILD + AND;
+    public final static String LIKE_ARTICLE = "like:a:";
+    public final static String LIKE_ARTICLE_COMMENT = "like:ac:";
+    public final static String LIKE_ARTICLE_COMMENT_CHILD = "like:acc:";
+    public final static String LIKE_DISCUSS = "like:d:";
+    public final static String LIKE_DISCUSS_COMMENT = "like:dc:";
+    public final static String LIKE_DISCUSS_COMMENT_CHILD = "like:dcc:";
 
     // hot
-    public final static String HOT_ARTICLE = HOT + ARTICLE;
-    public final static String HOT_ARTICLE_COMMENT = HOT + ARTICLE_COMMENT + AND;
-    public final static String HOT_ARTICLE_COMMENT_CHILD = HOT + ARTICLE_COMMENT_CHILD + AND;
-    public final static String HOT_TOPIC = HOT + TOPIC;
-    public final static String HOT_DISCUSS = HOT + DISCUSS + AND;
-    public final static String HOT_DISCUSS_COMMENT = HOT + DISCUSS_COMMENT + AND;
-    public final static String HOT_DISCUSS_COMMENT_CHILD = HOT + DISCUSS_COMMENT_CHILD + AND;
+    public final static String HOT_ARTICLE = "hot:a";
+    public final static String HOT_ARTICLE_COMMENT = "hot:ac:";
+    public final static String HOT_ARTICLE_COMMENT_CHILD = "hot:acc:";
+    public final static String HOT_TOPIC = "hot:t";
+    public final static String HOT_DISCUSS = "hot:d:";
+    public final static String HOT_DISCUSS_COMMENT = "hot:dc:";
+    public final static String HOT_DISCUSS_COMMENT_CHILD = "hot:dcc:";
+
+    // follow
+    public final static String FOLLOW_TOPIC = "like:t:";
+    public final static String FOLLOW_LABEL = "like:l:";
+    public final static String FOLLOW_CREATOR = "like:c:";
+
+    // collection
+    public final static String COLLECTION_ARTICLE = "collect:a:";
+    public final static String COLLECTION_DISCUSS = "collect:d:";
 }

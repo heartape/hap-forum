@@ -23,6 +23,11 @@ public interface ITopicService extends IService<Topic> {
     void create(TopicDTO topicDTO);
 
     /**
+     * 关注话题
+     */
+    boolean follow(Long topicId);
+
+    /**
      * 查询列表
      */
     PageInfo<TopicSimpleBO> list(Integer page, Integer size);
@@ -36,4 +41,5 @@ public interface ITopicService extends IService<Topic> {
      * 删除
      */
     void remove(Long topicId);
+
 }

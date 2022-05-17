@@ -8,11 +8,13 @@ public interface IMessageNotificationProducer {
 
     /**
      * 创建点赞消息通知
+     * todo:方法异步执行
      */
     void likeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType);
 
     /**
-     * 创建点赞消息通知
+     * 创建点踩消息通知
+     * todo:方法异步执行
      */
     void dislikeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType);
 

@@ -60,15 +60,15 @@ public class DiscussCommentChildController {
     @PutMapping("/like")
     @ApiOperation("点赞评论")
     public Result like(@RequestParam Long commentId) {
-        discussCommentChildService.like(commentId);
-        return Result.success();
+        boolean like = discussCommentChildService.like(commentId);
+        return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("点赞评论")
     public Result dislike(@RequestParam Long commentId) {
-        discussCommentChildService.dislike(commentId);
-        return Result.success();
+        boolean dislike = discussCommentChildService.dislike(commentId);
+        return Result.success(dislike);
     }
 
     @DeleteMapping

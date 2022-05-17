@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DiscussCommentChildLikeStatistics extends AbstractTypeOperateStatistics {
+public class TopicFollowStatistics extends AbstractPairOperateStatistics {
 
     @Autowired
     private RedisTemplate<String,Long> longRedisTemplate;
@@ -19,11 +19,11 @@ public class DiscussCommentChildLikeStatistics extends AbstractTypeOperateStatis
 
     @Override
     public String getKeyHeader(long sourceId) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + sourceId;
+        return ResourceRedisKeyConstant.FOLLOW_TOPIC + sourceId;
     }
 
     @Override
     public String getSponsorKeyHeader(long sponsorId) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceRedisKeyConstant.SPONSOR + sponsorId;
+        return ResourceRedisKeyConstant.FOLLOW_TOPIC + ResourceRedisKeyConstant.SPONSOR + sponsorId;
     }
 }

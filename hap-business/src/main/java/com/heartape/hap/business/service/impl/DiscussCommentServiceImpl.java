@@ -10,10 +10,10 @@ import com.heartape.hap.business.entity.DiscussComment;
 import com.heartape.hap.business.entity.DiscussCommentChild;
 import com.heartape.hap.business.entity.TopicDiscuss;
 import com.heartape.hap.business.entity.bo.DiscussCommentBO;
+import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
 import com.heartape.hap.business.entity.dto.DiscussCommentDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
-import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
@@ -22,13 +22,14 @@ import com.heartape.hap.business.mapper.TopicDiscussMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IDiscussCommentService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.business.statistics.DiscussCommentLikeStatistics;
+import com.heartape.hap.business.statistics.*;
 import com.heartape.hap.business.utils.AssertUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper, DiscussComment> implements IDiscussCommentService {
 
     @Autowired
@@ -59,7 +61,16 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     private DiscussCommentLikeStatistics discussCommentLikeStatistics;
 
     @Autowired
+    private DiscussCommentChildLikeStatistics discussCommentChildLikeStatistics;
+
+    @Autowired
     private IMessageNotificationProducer messageNotificationProducer;
+
+    @Autowired
+    private DiscussCommentHotStatistics discussCommentHotStatistics;
+
+    @Autowired
+    private DiscussCommentChildHotStatistics discussCommentChildHotStatistics;
 
     @Override
     public void create(DiscussCommentDTO discussCommentDTO) {
@@ -83,6 +94,10 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         discussComment.setAvatar(avatar);
         discussComment.setNickname(nickname);
         baseMapper.insert(discussComment);
+        // 初始化热度
+        Long commentId = discussComment.getCommentId();
+        int hot = discussCommentHotStatistics.operateIncrement(discussId, commentId, DiscussCommentHotStatistics.INIT_HOT);
+        log.info("discussId:" + discussId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
     @Override
@@ -95,8 +110,27 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         List<DiscussCommentBO> discussCommentBOS = discussComments.stream().map(discussComment -> {
             DiscussCommentBO discussCommentBO = new DiscussCommentBO();
             BeanUtils.copyProperties(discussComment, discussCommentBO);
-            // todo: 获取高热度评论
-            discussCommentBO.setSimpleChildren(new ArrayList<>());
+            // 获取高热度评论
+            Long mainId = discussComment.getCommentId();
+            List<Long> childIds = discussCommentChildHotStatistics.operateNumberPage(mainId, 1, 2)
+                    .stream().map(ZSetOperations.TypedTuple::getValue).collect(Collectors.toList());
+            LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+            // todo:控制字段
+            queryWrapper.in(DiscussCommentChild::getCommentId, childIds);
+            List<DiscussCommentChild> discussCommentChildren = discussCommentChildMapper.selectList(queryWrapper);
+            // 转换为bo
+            List<DiscussCommentChildBO> commentChildBOS = discussCommentChildren.stream().map(discussCommentChild -> {
+                DiscussCommentChildBO discussCommentChildBO = new DiscussCommentChildBO();
+                BeanUtils.copyProperties(discussCommentChild, discussCommentChildBO);
+                // 点赞
+                Long childCommentId = discussCommentChild.getCommentId();
+                int likeNumber = discussCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
+                int dislikeNumber = discussCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+                discussCommentChildBO.setLike(likeNumber);
+                discussCommentChildBO.setDislike(dislikeNumber);
+                return discussCommentChildBO;
+            }).collect(Collectors.toList());
+            discussCommentBO.setSimpleChildren(commentChildBOS);
             // 点赞
             Long commentId = discussComment.getCommentId();
             int likeNumber = discussCommentLikeStatistics.getPositiveOperateNumber(commentId);
@@ -110,31 +144,35 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     }
 
     @Override
-    public void like(Long commentId) {
+    public boolean like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussCommentLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
-        // 查询文章id
-        LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
-        DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
-        Long topicId = discussComment.getTopicId();
-        messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+        boolean positiveOperate = discussCommentLikeStatistics.setPositiveOperate(commentId, uid);
+        if (positiveOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
+            DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
+            Long topicId = discussComment.getTopicId();
+            messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+        }
+        return positiveOperate;
     }
 
     @Override
-    public void dislike(Long commentId) {
+    public boolean dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussCommentLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
-        // 查询文章id
-        LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
-        DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
-        Long topicId = discussComment.getTopicId();
-        messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+        boolean negativeOperate = discussCommentLikeStatistics.setNegativeOperate(commentId, uid);
+        if (negativeOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
+            DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
+            Long topicId = discussComment.getTopicId();
+            messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+        }
+        return negativeOperate;
     }
 
     @Override
@@ -146,7 +184,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
 
         String message = "\n没有DiscussComment删除权限,\ncommentId=" + commentId + ",\nuid=" + uid;
         assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
-
+        // todo:异步删除，同时删除热度和点赞数据
         LambdaQueryWrapper<DiscussCommentChild> discussCommentChildWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
         discussCommentChildMapper.delete(discussCommentChildWrapper.eq(DiscussCommentChild::getParentId, commentId));
     }

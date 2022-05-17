@@ -38,6 +38,13 @@ public class TopicController {
         return Result.success();
     }
 
+    @PostMapping("/follow")
+    @ApiOperation("关注话题")
+    public Result follow(@RequestParam Long topicId) {
+        boolean follow = topicService.follow(topicId);
+        return Result.success(follow);
+    }
+
     @GetMapping("/list/hot")
     @ApiOperation("热门话题列表")
     public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {

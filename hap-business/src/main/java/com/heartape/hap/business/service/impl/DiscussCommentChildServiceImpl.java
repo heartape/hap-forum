@@ -12,7 +12,6 @@ import com.heartape.hap.business.entity.bo.DiscussCommentChildBO;
 import com.heartape.hap.business.entity.dto.DiscussCommentChildDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
-import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.DiscussCommentChildMapper;
@@ -20,9 +19,10 @@ import com.heartape.hap.business.mapper.DiscussCommentMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.DiscussCommentChildHotStatistics;
 import com.heartape.hap.business.statistics.DiscussCommentChildLikeStatistics;
-import com.heartape.hap.business.statistics.DiscussCommentLikeStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentChildMapper, DiscussCommentChild> implements IDiscussCommentChildService {
 
     @Autowired
@@ -52,6 +53,9 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
 
     @Autowired
     private DiscussCommentChildLikeStatistics discussCommentChildLikeStatistics;
+
+    @Autowired
+    private DiscussCommentChildHotStatistics discussCommentChildHotStatistics;
 
     @Autowired
     private IMessageNotificationProducer messageNotificationProducer;
@@ -80,6 +84,10 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         discussCommentChild.setAvatar(avatar);
         discussCommentChild.setNickname(nickname);
         baseMapper.insert(discussCommentChild);
+        // 初始化热度
+        Long commentId = discussCommentChild.getCommentId();
+        int hot = discussCommentChildHotStatistics.operateIncrement(parentId, commentId, DiscussCommentChildHotStatistics.INIT_HOT);
+        log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
     @Override
@@ -137,31 +145,35 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
     }
 
     @Override
-    public void like(Long commentId) {
+    public boolean like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论子评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
-        // 查询文章id
-        LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
-        DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
-        Long topicId = discussCommentChild.getTopicId();
-        messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
+        boolean positiveOperate = discussCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
+        if (positiveOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+            DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
+            Long topicId = discussCommentChild.getTopicId();
+            messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
+        }
+        return positiveOperate;
     }
 
     @Override
-    public void dislike(Long commentId) {
+    public boolean dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = discussCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("讨论子评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
-        // 查询文章id
-        LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
-        DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
-        Long topicId = discussCommentChild.getTopicId();
-        messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
+        boolean negativeOperate = discussCommentChildLikeStatistics.setNegativeOperate(commentId, uid);
+        if (negativeOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+            DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
+            Long topicId = discussCommentChild.getTopicId();
+            messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
+        }
+        return negativeOperate;
     }
 
     @Override

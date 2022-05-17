@@ -15,15 +15,15 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
     
     public abstract String getKeyHeader(long sourceId);
     
-    public abstract String getUserKeyHeader(long uid);
+    public abstract String getSponsorKeyHeader(long sponsorId);
 
     /**
      * 资源积极操作是否被记录
      */
     @Override
-    public boolean getPositiveOperate(long sourceId, long uid){
+    public boolean getPositiveOperate(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        Double score = getZSetOperations().score(sourceKey, uid);
+        Double score = getZSetOperations().score(sourceKey, sponsorId);
         return score != null && Objects.equals(score.intValue(), TypeEnum.POSITIVE.getTypeCode());
     }
 
@@ -31,9 +31,9 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 资源消极操作是否被记录
      */
     @Override
-    public boolean getNegativeOperate(long sourceId, long uid){
+    public boolean getNegativeOperate(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        Double score = getZSetOperations().score(sourceKey, uid);
+        Double score = getZSetOperations().score(sourceKey, sponsorId);
         return score != null && Objects.equals(score.intValue(), TypeEnum.NEGATIVE.getTypeCode());
     }
 
@@ -55,36 +55,36 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 记录资源受到的用户积极操作,返回true表示操作成功
      */
     @Override
-    public boolean setPositiveOperate(long sourceId, long uid){
+    public boolean setPositiveOperate(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        return setOperate(sourceKey, uid, TypeEnum.POSITIVE);
+        return setOperate(sourceKey, sponsorId, TypeEnum.POSITIVE);
     }
 
     /**
      * 记录资源受到的用户消极操作,返回true表示操作成功
      */
     @Override
-    public boolean setNegativeOperate(long sourceId, long uid){
+    public boolean setNegativeOperate(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        return setOperate(sourceKey, uid, TypeEnum.NEGATIVE);
+        return setOperate(sourceKey, sponsorId, TypeEnum.NEGATIVE);
     }
 
     /**
      * 资源操作类型
      */
     @Override
-    public String getOperateType(long sourceId, long uid){
+    public String getOperateType(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        return getOperateType(sourceKey, uid);
+        return getOperateType(sourceKey, sponsorId);
     }
 
     /**
      * 移除资源受到的用户操作,返回true表示操作成功
      */
     @Override
-    public boolean removeOperate(long sourceId, long uid){
+    public boolean removeOperate(long sourceId, long sponsorId){
         String sourceKey = getKeyHeader(sourceId);
-        Long number = getZSetOperations().remove(sourceKey, uid);
+        Long number = getZSetOperations().remove(sourceKey, sponsorId);
         return Objects.equals(number, 1L);
     }
 
@@ -92,9 +92,9 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 当前用户是否已经对目标资源进行积极操作
      */
     @Override
-    public boolean getPeoplePositiveOperate(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        Double score = getZSetOperations().score(userKey, sourceId);
+    public boolean getPeoplePositiveOperate(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        Double score = getZSetOperations().score(sponsorKey, sourceId);
         return score != null && Objects.equals(score.intValue(), TypeEnum.POSITIVE.getTypeCode());
     }
 
@@ -102,9 +102,9 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 当前用户是否已经对目标资源进行消极操作
      */
     @Override
-    public boolean getPeopleNegativeOperate(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        Double score = getZSetOperations().score(userKey, sourceId);
+    public boolean getPeopleNegativeOperate(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        Double score = getZSetOperations().score(sponsorKey, sourceId);
         return score != null && Objects.equals(score.intValue(), TypeEnum.NEGATIVE.getTypeCode());
     }
 
@@ -112,47 +112,47 @@ public abstract class AbstractTypeOperateStatistics implements TypeOperateStatis
      * 记录用户对目标资源的积极操作行为,返回true表示操作成功
      */
     @Override
-    public boolean setPeoplePositiveOperate(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        return setOperate(userKey, sourceId, TypeEnum.POSITIVE);
+    public boolean setPeoplePositiveOperate(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        return setOperate(sponsorKey, sourceId, TypeEnum.POSITIVE);
     }
 
     /**
      * 记录用户对目标资源的消极操作行为,返回true表示操作成功
      */
     @Override
-    public boolean setPeopleNegativeOperate(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        return setOperate(userKey, sourceId, TypeEnum.NEGATIVE);
+    public boolean setPeopleNegativeOperate(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        return setOperate(sponsorKey, sourceId, TypeEnum.NEGATIVE);
     }
 
     /**
      * 用户对目标资源操作类型
      */
     @Override
-    public String getPeopleOperateType(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        return getOperateType(userKey, sourceId);
+    public String getPeopleOperateType(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        return getOperateType(sponsorKey, sourceId);
     }
 
     /**
      * 移除用户对目标资源的操作行为,返回true表示操作成功
      */
     @Override
-    public boolean removePeopleOperate(long uid, long sourceId){
-        String userKey = getUserKeyHeader(uid);
-        Long remove = getZSetOperations().remove(userKey, sourceId);
+    public boolean removePeopleOperate(long sponsorId, long sourceId){
+        String sponsorKey = getSponsorKeyHeader(sponsorId);
+        Long remove = getZSetOperations().remove(sponsorKey, sourceId);
         return Objects.equals(remove, 1L);
     }
 
     /**
-     * 记录资源受到的用户操作,返回true表示操作成功
+     * 记录资源受到的用户操作,
+     * 返回true表示添加操作，false表示取消操作
      */
     private boolean setOperate(String key, long member, TypeEnum typeEnum){
         String script = LuaScript.TYPE_SET;
         List<String> keys = new ArrayList<>();
         keys.add(key);
-        // 因为redis中小数和
         Boolean success = getZSetOperations().getOperations().execute(RedisScript.of(script, Boolean.class), keys, member, typeEnum.getTypeCode());
         return Objects.equals(success, true);
     }

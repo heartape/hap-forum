@@ -26,11 +26,25 @@ import java.util.stream.Collectors;
 public class LinkGuideServiceImpl extends ServiceImpl<LinkGuideMapper, LinkGuide> implements ILinkGuideService {
 
     @Override
+    public List<LinkGuideBO> showHot() {
+        LambdaQueryWrapper<LinkGuide> queryWrapper = new QueryWrapper<LinkGuide>().lambda();
+        // todo:先取出top的内容,再取出范围内的order对应的数据,再根据时间进行排序
+        queryWrapper.select(LinkGuide::getGuideId, LinkGuide::getTitle, LinkGuide::getPath).orderByDesc(LinkGuide::getTopping).orderByDesc(LinkGuide::getSequence);
+        PageHelper.startPage(1,10);
+        List<LinkGuide> list = baseMapper.selectList(queryWrapper);
+        return list.stream().map(linkGuide -> {
+            LinkGuideBO linkGuideBO = new LinkGuideBO();
+            BeanUtils.copyProperties(linkGuide, linkGuideBO);
+            return linkGuideBO;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
     public List<LinkGuideBO> showList(Integer page, Integer size) {
         LambdaQueryWrapper<LinkGuide> queryWrapper = new QueryWrapper<LinkGuide>().lambda();
+        // todo:先取出top的内容,再取出范围内的order对应的数据,再根据时间进行排序
         queryWrapper.select(LinkGuide::getGuideId, LinkGuide::getTitle, LinkGuide::getPath).orderByDesc(LinkGuide::getTopping).orderByDesc(LinkGuide::getSequence);
         PageHelper.startPage(page,size);
-        // todo:现根据top,order排序,再根据热度进行排序
         List<LinkGuide> list = baseMapper.selectList(queryWrapper);
         return list.stream().map(linkGuide -> {
             LinkGuideBO linkGuideBO = new LinkGuideBO();

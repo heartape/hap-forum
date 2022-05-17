@@ -23,12 +23,16 @@ public class TypeOperateStatisticsTest {
         System.out.println(setNegativeOperate);
         boolean setNegativeOperate1 = articleLikeStatistics.setNegativeOperate(1L, 1L);
         System.out.println(setNegativeOperate1);
+        boolean setNegativeOperate2 = articleLikeStatistics.setNegativeOperate(1L, 1L);
+        System.out.println(setNegativeOperate2);
         boolean getNegativeOperate = articleLikeStatistics.getNegativeOperate(1L, 1L);
         System.out.println(getNegativeOperate);
         boolean setPositiveOperate = articleLikeStatistics.setPositiveOperate(1L, 1L);
         System.out.println(setPositiveOperate);
         boolean setPositiveOperate1 = articleLikeStatistics.setPositiveOperate(1L, 1L);
         System.out.println(setPositiveOperate1);
+        boolean setPositiveOperate2 = articleLikeStatistics.setPositiveOperate(1L, 1L);
+        System.out.println(setPositiveOperate2);
         boolean getPositiveOperate = articleLikeStatistics.getPositiveOperate(1L, 1L);
         System.out.println(getPositiveOperate);
     }

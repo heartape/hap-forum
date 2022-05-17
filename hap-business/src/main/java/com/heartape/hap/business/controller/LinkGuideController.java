@@ -26,6 +26,13 @@ public class LinkGuideController {
     @Autowired
     private ILinkGuideService linkGuideService;
 
+    @GetMapping("/hot")
+    @ApiOperation("导航链接列表")
+    public Result hot() {
+        List<LinkGuideBO> linkGuides = linkGuideService.showHot();
+        return Result.success(linkGuides);
+    }
+
     @GetMapping
     @ApiOperation("导航链接列表")
     public Result list(@RequestParam Integer pageNum, @RequestParam Integer pageSize) {

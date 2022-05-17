@@ -12,7 +12,6 @@ import com.heartape.hap.business.entity.bo.ArticleCommentChildBO;
 import com.heartape.hap.business.entity.dto.ArticleCommentChildDTO;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
-import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
@@ -20,8 +19,11 @@ import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IArticleCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.ArticleCommentChildHotStatistics;
 import com.heartape.hap.business.statistics.ArticleCommentChildLikeStatistics;
+import com.heartape.hap.business.statistics.ArticleHotStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentChildMapper, ArticleCommentChild> implements IArticleCommentChildService {
 
     @Autowired
@@ -45,6 +48,9 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
 
     @Autowired
     private ArticleCommentChildLikeStatistics articleCommentChildLikeStatistics;
+
+    @Autowired
+    private ArticleCommentChildHotStatistics articleCommentChildHotStatistics;
 
     @Autowired
     private AssertUtils assertUtils;
@@ -78,6 +84,10 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         articleCommentChild.setAvatar(avatar);
         articleCommentChild.setNickname(nickname);
         baseMapper.insert(articleCommentChild);
+        // 初始化热度
+        Long commentId = articleCommentChild.getCommentId();
+        int hot = articleCommentChildHotStatistics.operateIncrement(parentId, commentId, ArticleHotStatistics.INIT_HOT);
+        log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
     @Override
@@ -106,6 +116,10 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         articleCommentChild.setAvatar(avatar);
         articleCommentChild.setNickname(nickname);
         baseMapper.insert(articleCommentChild);
+        // 初始化热度
+        Long commentId = articleCommentChild.getCommentId();
+        int hot = articleCommentChildHotStatistics.operateIncrement(parentId, commentId, ArticleHotStatistics.INIT_HOT);
+        log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
     @Override
@@ -136,31 +150,35 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
     }
 
     @Override
-    public void like(Long commentId) {
+    public boolean like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("文章子评论:" + commentId + ",用户:" + uid + "已经进行过点赞"));
-        // 查询文章id
-        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
-        ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
-        Long articleId = articleCommentChild.getArticleId();
-        messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
+        boolean positiveOperate = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
+        if (positiveOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+            ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
+            Long articleId = articleCommentChild.getArticleId();
+            messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
+        }
+        return positiveOperate;
     }
 
     @Override
-    public void dislike(Long commentId) {
+    public boolean dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("文章子评论:" + commentId + ",用户:" + uid + "已经进行过点踩"));
-        // 查询文章id
-        LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
-        ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
-        Long articleId = articleCommentChild.getArticleId();
-        messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
+        boolean negativeOperate = articleCommentChildLikeStatistics.setNegativeOperate(commentId, uid);
+        if (negativeOperate) {
+            // 查询文章id
+            LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
+            ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
+            Long articleId = articleCommentChild.getArticleId();
+            messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
+        }
+        return negativeOperate;
     }
 
     @Override
@@ -170,5 +188,6 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         int delete = baseMapper.delete(queryWrapper.eq(ArticleCommentChild::getCommentId, commentId).eq(ArticleCommentChild::getUid, uid));
         String message = "\n没有ArticleCommentChild删除权限,\ncommentId=" + commentId + ",\nuid=" + uid;
         assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
+        // todo:删除点赞数据
     }
 }

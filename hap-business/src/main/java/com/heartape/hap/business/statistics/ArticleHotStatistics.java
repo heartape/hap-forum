@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ArticleHotStatistics extends AbstractTopCumulativeOperateStatistics {
 
+    public final static int INIT_HOT = 100;
+
     @Autowired
     private RedisTemplate<String,Long> longRedisTemplate;
 

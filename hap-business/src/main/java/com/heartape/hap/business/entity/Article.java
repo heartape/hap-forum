@@ -19,6 +19,10 @@ import lombok.EqualsAndHashCode;
 @Data
 public class Article extends BaseEntity {
 
+    /**
+     * TableId 注解会自动在insert时返回该主键
+     * type = IdType.AUTO时会使用sharding的分布式主键
+     */
     @TableId(value = "article_id", type = IdType.AUTO)
     private Long articleId;
 

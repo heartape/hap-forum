@@ -15,7 +15,7 @@ public enum MessageNotificationActionEnum {
     /** 点赞 */
     DISLIKE(2, "dislike"),
     /** 关注 */
-    STAR(3, "star"),
+    FOLLOW(3, "follow"),
     /** 讨论 */
     DISCUSS(4, "discuss"),
     /** 评论 */
@@ -51,8 +51,8 @@ public enum MessageNotificationActionEnum {
     public static String exchangeAction(Integer actionCode) {
         if (LIKE.getCode().equals(actionCode)) {
             return LIKE.getName();
-        } else if (STAR.getCode().equals(actionCode)) {
-            return STAR.getName();
+        } else if (FOLLOW.getCode().equals(actionCode)) {
+            return FOLLOW.getName();
         } else if (DISCUSS.getCode().equals(actionCode)) {
             return DISCUSS.getName();
         } else if (COMMENT.getCode().equals(actionCode)) {

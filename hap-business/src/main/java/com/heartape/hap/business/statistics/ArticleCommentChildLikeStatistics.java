@@ -23,7 +23,7 @@ public class ArticleCommentChildLikeStatistics extends AbstractTypeOperateStatis
     }
 
     @Override
-    public String getUserKeyHeader(long uid) {
-        return ResourceRedisKeyConstant.LIKE_ARTICLE_COMMENT_CHILD + "uid:" + uid;
+    public String getSponsorKeyHeader(long sponsorId) {
+        return ResourceRedisKeyConstant.LIKE_ARTICLE_COMMENT_CHILD + ResourceRedisKeyConstant.SPONSOR + sponsorId;
     }
 }

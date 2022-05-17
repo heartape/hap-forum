@@ -23,12 +23,12 @@ public interface ITopicDiscussService extends IService<TopicDiscuss> {
     /**
      * 点赞
      */
-    void like(Long discussId);
+    boolean like(Long discussId);
 
     /**
      * 点踩
      */
-    void dislike(Long discussId);
+    boolean dislike(Long discussId);
 
     void remove(Long discussId);
 }

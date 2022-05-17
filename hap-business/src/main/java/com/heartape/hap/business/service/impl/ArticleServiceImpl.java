@@ -13,19 +13,20 @@ import com.heartape.hap.business.entity.bo.*;
 import com.heartape.hap.business.entity.dto.ArticleDTO;
 import com.heartape.hap.business.exception.ParamIsInvalidException;
 import com.heartape.hap.business.exception.PermissionNoRemoveException;
-import com.heartape.hap.business.exception.ResourceOperateRepeatException;
 import com.heartape.hap.business.feign.HapUserDetails;
 import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mapper.ArticleMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
-import com.heartape.hap.business.statistics.AbstractTopCumulativeOperateStatistics;
+import com.heartape.hap.business.statistics.ArticleHotStatistics;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.business.statistics.HotDeltaEnum;
 import com.heartape.hap.business.utils.AssertUtils;
 import com.heartape.hap.business.utils.StringTransformUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.BeanUtils;
@@ -44,6 +45,7 @@ import java.util.stream.Collectors;
  * @since 2022-03-13
  */
 @Service
+@Slf4j
 public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> implements IArticleService {
 
     @Autowired
@@ -68,7 +70,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     private ArticleLikeStatistics articleLikeStatistics;
 
     @Autowired
-    private AbstractTopCumulativeOperateStatistics abstractTopCumulativeOperateStatistics;
+    private ArticleHotStatistics articleHotStatistics;
 
     @Override
     public void create(ArticleDTO articleDTO) {
@@ -78,7 +80,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String s = Jsoup.clean(content, Safelist.none());
         String ignoreBlank = stringTransformUtils.IgnoreBlank(s);
         int length = ignoreBlank.length();
-        String message = "\n文章长度低于指定范围:\n长度=" + length + "\n内容=" + length;
+        String message = "\n文章长度低于指定范围:\n长度=" + length + "\n内容=" + ignoreBlank;
         assertUtils.businessState(length > 100, new ParamIsInvalidException(message));
         String simpleContent = ignoreBlank.substring(0, 100);
         article.setSimpleContent(simpleContent);
@@ -93,6 +95,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         article.setNickname(nickname);
         article.setProfile(profile);
         this.baseMapper.insert(article);
+        // 初始化热度
+        Long articleId = article.getArticleId();
+        int hot = articleHotStatistics.operateIncrement(articleId, ArticleHotStatistics.INIT_HOT);
+        log.info("articleId:" + articleId + "设置初始热度为" + hot);
     }
 
     @Override
@@ -132,31 +138,44 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return labelBO;
         }).collect(Collectors.toList());
         articleBO.setLabel(label);
-        int likeNumber = articleLikeStatistics.getPositiveOperateNumber(article.getArticleId());
-        int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(article.getArticleId());
+        int likeNumber = articleLikeStatistics.getPositiveOperateNumber(articleId);
+        int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(articleId);
         articleBO.setLike(likeNumber);
         articleBO.setDislike(dislikeNumber);
+        int delta = HotDeltaEnum.ARTICLE_SELECT.getDelta();
+        int i = articleHotStatistics.operateIncrement(articleId, delta);
+        log.info("文章查询热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
         return articleBO;
     }
 
     @Override
-    public void like(Long articleId) {
+    public boolean like(Long articleId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = articleLikeStatistics.setPositiveOperate(articleId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + uid + "已经进行过点赞"));
-        messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+        boolean positiveOperate = articleLikeStatistics.setPositiveOperate(articleId, uid);
+        if (positiveOperate) {
+            messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+            int delta = HotDeltaEnum.ARTICLE_LIKE.getDelta();
+            int i = articleHotStatistics.operateIncrement(articleId, delta);
+            log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
+        }
+        return positiveOperate;
     }
 
     @Override
-    public void dislike(Long articleId) {
+    public boolean dislike(Long articleId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean b = articleLikeStatistics.setNegativeOperate(articleId, uid);
-        assertUtils.businessState(b, new ResourceOperateRepeatException("文章:" + articleId + ",用户:" + uid + "已经进行过踩"));
-        messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+        boolean negativeOperate = articleLikeStatistics.setNegativeOperate(articleId, uid);
+        if (negativeOperate) {
+            messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
+            int delta = HotDeltaEnum.ARTICLE_DISLIKE.getDelta();
+            int i = articleHotStatistics.operateIncrement(articleId, delta);
+            log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
+        }
+        return negativeOperate;
     }
 
     @Override
@@ -167,7 +186,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         String message = "\n没有删除权限,\narticleId=" + articleId +",\nuid=" + uid;
         assertUtils.businessState(delete == 1, new PermissionNoRemoveException(message));
         // todo:删除点赞，热度等数据
-        // todo:rabbitmq异步删除评论
+        // todo:异步删除评论
         LambdaQueryWrapper<ArticleComment> articleCommentWrapper = new QueryWrapper<ArticleComment>().lambda();
         articleCommentMapper.delete(articleCommentWrapper.eq(ArticleComment::getArticleId, articleId));
 

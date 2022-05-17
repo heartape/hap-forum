@@ -23,7 +23,7 @@ public class DiscussLikeStatistics extends AbstractTypeOperateStatistics {
     }
 
     @Override
-    public String getUserKeyHeader(long uid) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS + "uid:" + uid;
+    public String getSponsorKeyHeader(long sponsorId) {
+        return ResourceRedisKeyConstant.LIKE_DISCUSS + ResourceRedisKeyConstant.SPONSOR + sponsorId;
     }
 }

@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 public class Creator {
 
-    @TableId(value = "uid", type = IdType.ASSIGN_ID)
+    @TableId(value = "uid", type = IdType.AUTO)
     private Long uid;
 
     private String email;

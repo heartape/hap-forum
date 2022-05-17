@@ -35,12 +35,12 @@ public interface IArticleService extends IService<Article> {
     /**
      * 点赞文章
      */
-    void like(Long articleId);
+    boolean like(Long articleId);
 
     /**
      * 踩文章
      */
-    void dislike(Long articleId);
+    boolean dislike(Long articleId);
 
     /**
      * 删除文章

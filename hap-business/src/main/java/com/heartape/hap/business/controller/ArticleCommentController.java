@@ -50,15 +50,15 @@ public class ArticleCommentController {
     @PutMapping("/like")
     @ApiOperation("点赞文章评论")
     public Result like(@RequestParam Long commentId) {
-        articleCommentService.like(commentId);
-        return Result.success();
+        boolean like = articleCommentService.like(commentId);
+        return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("点踩文章评论")
     public Result dislike(@RequestParam Long commentId) {
-        articleCommentService.dislike(commentId);
-        return Result.success();
+        boolean dislike = articleCommentService.dislike(commentId);
+        return Result.success(dislike);
     }
 
     @DeleteMapping

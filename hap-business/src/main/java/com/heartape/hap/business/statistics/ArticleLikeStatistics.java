@@ -23,7 +23,7 @@ public class ArticleLikeStatistics extends AbstractTypeOperateStatistics {
     }
 
     @Override
-    public String getUserKeyHeader(long uid) {
-        return ResourceRedisKeyConstant.LIKE_ARTICLE + "uid:" + uid;
+    public String getSponsorKeyHeader(long sponsorId) {
+        return ResourceRedisKeyConstant.LIKE_ARTICLE + ResourceRedisKeyConstant.SPONSOR + sponsorId;
     }
 }
