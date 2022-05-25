@@ -1,47 +1,42 @@
 package com.heartape.hap.business.statistics;
 
-import org.springframework.data.redis.core.ZSetOperations;
+import lombok.Data;
 
-import java.util.Set;
+import java.util.List;
 
 /**
- * 资源累计操作统计，如热度等可重复操作
+ * 资源累计操作统计，如热度
  */
 public interface CumulativeOperateStatistics {
 
     /**
-     * 资源被操作数
+     * 操作数
      */
-    int operateNumber(Long mainId, long sourceId);
+    int count(long mainId, long resourceId);
 
     /**
-     * 资源被操作数
+     * 操作数增加
      */
-    int operateNumberAll(Long mainId);
+    int updateIncrement(long mainId, long resourceId, int delta);
 
     /**
-     * 资源操作数增加
+     * 修改操作数倍数
      */
-    int operateIncrement(Long mainId, long sourceId, int delta);
+    int updateMultiple(long mainId, long resourceId, double delta);
 
     /**
-     * 资源操作数减少
+     * 根据操作数分页查询
      */
-    int operateDecrement(Long mainId, long sourceId, int delta);
+    List<CumulativeValue> selectPage(long mainId, int pageNum, int pageSize);
 
-    /**
-     * 修改资源操作数倍数
-     */
-    int operateMultiple(Long mainId, long sourceId, double delta);
+    boolean delete(long mainId);
 
-    /**
-     * 根据资源操作数分页查询
-     */
-    Set<ZSetOperations.TypedTuple<Long>> operateNumberPage(Long mainId, int pageNum, int pageSize);
+    boolean delete(long mainId, long resourceId);
 
-    /**
-     * 移除资源受到的用户操作
-     */
-    boolean removeOperate(Long mainId, long sourceId);
+    @Data
+    class CumulativeValue {
+        private Long resourceId;
+        private Integer operate;
+    }
 
 }

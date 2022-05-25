@@ -34,6 +34,4 @@ public interface ILabelService extends IService<Label> {
     void create(LabelRO label);
 
     void createChild(LabelChildRO labelChildRO);
-
-    boolean follow(Long labelId);
 }

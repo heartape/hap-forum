@@ -1,23 +1,28 @@
 package com.heartape.hap.business.statistics;
 
 /**
- * 资源操作单向统计，即不作sponsor和source双向的统计
+ * 资源操作单向统计
  */
 public interface OperateStatistics {
 
     /**
-     * 资源操作时间戳,0表示不存在
+     * 是否存在
      */
-    long getOperate(long sponsorId, long sourceId);
+    boolean select(long resourceId, long sponsorId);
 
     /**
-     * 记录资源受到的用户操作,返回true表示操作成功
+     * 操作数
      */
-    boolean setOperate(long sponsorId, long sourceId, long timestamp);
+    long count(long resourceId);
+
+    /**
+     * 记录资源受到的用户操作,返回操作后数量
+     */
+    long insert(long resourceId, long sponsorId);
 
     /**
      * 删除统计
      */
-    boolean removeOperate(long sponsorId);
+    boolean remove(long resourceId);
 
 }

@@ -11,16 +11,8 @@ public class ArticleCommentHotStatistics extends AbstractCumulativeOperateStatis
 
     public final static int INIT_HOT = 100;
 
-    @Autowired
-    private RedisTemplate<String,Long> longRedisTemplate;
-
     @Override
-    public ZSetOperations<String, Long> getZSetOperations() {
-        return longRedisTemplate.opsForZSet();
-    }
-
-    @Override
-    public String getKey(Long mainId) {
-        return ResourceRedisKeyConstant.HOT_ARTICLE_COMMENT;
+    public String getKey(long mainId) {
+        return ResourceRedisKeyConstant.HEAT_ARTICLE_COMMENT;
     }
 }

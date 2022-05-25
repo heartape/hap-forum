@@ -12,19 +12,15 @@ import com.heartape.hap.business.entity.ro.LabelChildRO;
 import com.heartape.hap.business.entity.ro.LabelRO;
 import com.heartape.hap.business.exception.RelyDataNotExistedException;
 import com.heartape.hap.business.exception.ResourceNotExistedException;
-import com.heartape.hap.business.feign.TokenFeignServiceImpl;
 import com.heartape.hap.business.mapper.LabelMapper;
 import com.heartape.hap.business.service.ILabelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.business.statistics.LabelFollowStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -42,12 +38,6 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
 
     @Autowired
     private AssertUtils assertUtils;
-
-    @Autowired
-    private TokenFeignServiceImpl tokenFeignService;
-
-    @Autowired
-    private LabelFollowStatistics labelFollowStatistics;
 
     @Override
     public PageInfo<SimpleLabelBO> list(String name, Integer page, Integer size) {
@@ -128,20 +118,6 @@ public class LabelServiceImpl extends ServiceImpl<LabelMapper, Label> implements
         String simpleIntroduce = introduce.length() > 100 ? introduce.substring(0, 100) : introduce;
         label.setSimpleIntroduce(simpleIntroduce);
         this.baseMapper.insert(label);
-    }
-
-    @Override
-    public boolean follow(Long labelId) {
-        LambdaQueryWrapper<Label> queryWrapper = new QueryWrapper<Label>().lambda();
-        Long count = baseMapper.selectCount(queryWrapper.eq(Label::getLabelId, labelId));
-        String message = "标签：labelId=" + labelId + "不存在";
-        assertUtils.businessState(count.equals(1L), new RelyDataNotExistedException(message));
-        // 获取uid
-        long uid = tokenFeignService.getUid();
-        // 创建LabelFollow
-        LocalDateTime now = LocalDateTime.now();
-        long timestamp = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
-        return labelFollowStatistics.setOperate(labelId, uid, timestamp);
     }
 
 }

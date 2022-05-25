@@ -4,6 +4,7 @@ import com.heartape.hap.business.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.business.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
+import com.heartape.hap.business.statistics.TypeOperateStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,70 +15,36 @@ public class TypeOperateStatisticsTest {
     @Autowired
     private ArticleLikeStatistics articleLikeStatistics;
 
-    @Autowired
-    private IMessageNotificationProducer messageNotificationProducer;
-
     @Test
     public void test1() {
-        boolean setNegativeOperate = articleLikeStatistics.setNegativeOperate(1L, 1L);
-        System.out.println(setNegativeOperate);
-        boolean setNegativeOperate1 = articleLikeStatistics.setNegativeOperate(1L, 1L);
-        System.out.println(setNegativeOperate1);
-        boolean setNegativeOperate2 = articleLikeStatistics.setNegativeOperate(1L, 1L);
-        System.out.println(setNegativeOperate2);
-        boolean getNegativeOperate = articleLikeStatistics.getNegativeOperate(1L, 1L);
-        System.out.println(getNegativeOperate);
-        boolean setPositiveOperate = articleLikeStatistics.setPositiveOperate(1L, 1L);
-        System.out.println(setPositiveOperate);
-        boolean setPositiveOperate1 = articleLikeStatistics.setPositiveOperate(1L, 1L);
-        System.out.println(setPositiveOperate1);
-        boolean setPositiveOperate2 = articleLikeStatistics.setPositiveOperate(1L, 1L);
-        System.out.println(setPositiveOperate2);
-        boolean getPositiveOperate = articleLikeStatistics.getPositiveOperate(1L, 1L);
-        System.out.println(getPositiveOperate);
+        long resourceId = 11111L;
+        long sponsorId = 22222L;
+        TypeOperateStatistics.TypeNumber like1 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.POSITIVE);
+        System.out.println(like1);
+        TypeOperateStatistics.TypeNumber like2 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.POSITIVE);
+        System.out.println(like2);
+        TypeOperateStatistics.TypeNumber dislike1 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        System.out.println(dislike1);
+        TypeOperateStatistics.TypeNumber dislike2 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        System.out.println(dislike2);
+        TypeOperateStatistics.TypeNumber like3 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.POSITIVE);
+        System.out.println(like3);
+        TypeOperateStatistics.TypeNumber dislike3 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        System.out.println(dislike3);
+        TypeOperateStatistics.TypeNumber like4 = articleLikeStatistics.insert(sponsorId, resourceId, TypeOperateStatistics.TypeEnum.POSITIVE);
+        System.out.println(like4);
     }
 
     @Test
     public void test2() {
-        boolean getPositiveOperate = articleLikeStatistics.getPositiveOperate(1L, 1L);
-        System.out.println(getPositiveOperate);
-    }
-
-    @Test
-    public void test3() {
-        boolean setNegativeOperate = articleLikeStatistics.setNegativeOperate(1L, 1L);
-        System.out.println(setNegativeOperate);
-    }
-
-    @Test
-    public void test4() {
-        boolean getNegativeOperate = articleLikeStatistics.getNegativeOperate(1L, 1L);
-        System.out.println(getNegativeOperate);
-    }
-
-    @Test
-    public void test5() {
-        String operateType = articleLikeStatistics.getOperateType(1L, 1L);
-        System.out.println(operateType);
-    }
-
-    @Test
-    public void test6() {
-        boolean removeOperate = articleLikeStatistics.removeOperate(1L, 1L);
-        System.out.println(removeOperate);
-    }
-
-    @Test
-    public void test7() {
-        int number = articleLikeStatistics.getPositiveOperateNumber(1L);
-        System.out.println(number);
-        int number1 = articleLikeStatistics.getNegativeOperateNumber(1L);
-        System.out.println(number1);
-    }
-
-    @Test
-    public void testLikeArticle() {
-        messageNotificationProducer.likeCreate(1L, "西瓜", 710848206937784320L, MessageNotificationMainTypeEnum.ARTICLE, 710848206937784320L, MessageNotificationTargetTypeEnum.ARTICLE);
+        long targetId = 11111L;
+        long sponsorId = 22222L;
+        int positiveNumber = articleLikeStatistics.selectPositiveNumber(targetId);
+        System.out.println(positiveNumber);
+        int negativeNumber = articleLikeStatistics.selectNegativeNumber(targetId);
+        System.out.println(negativeNumber);
+        TypeOperateStatistics.TypeEnum type = articleLikeStatistics.type(sponsorId, targetId);
+        System.out.println(type);
     }
 
 }

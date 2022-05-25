@@ -25,7 +25,7 @@ public interface ITopicService extends IService<Topic> {
     /**
      * 关注话题
      */
-    boolean follow(Long topicId);
+    int follow(Long topicId);
 
     /**
      * 查询列表

@@ -21,6 +21,7 @@ import com.heartape.hap.business.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.business.statistics.DiscussCommentChildHotStatistics;
 import com.heartape.hap.business.statistics.DiscussCommentChildLikeStatistics;
+import com.heartape.hap.business.statistics.TypeOperateStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -86,7 +87,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         baseMapper.insert(discussCommentChild);
         // 初始化热度
         Long commentId = discussCommentChild.getCommentId();
-        int hot = discussCommentChildHotStatistics.operateIncrement(parentId, commentId, DiscussCommentChildHotStatistics.INIT_HOT);
+        int hot = discussCommentChildHotStatistics.updateIncrement(parentId, commentId, DiscussCommentChildHotStatistics.INIT_HOT);
         log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
@@ -134,8 +135,8 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
             BeanUtils.copyProperties(discussCommentChild, discussCommentChildBO);
             // 点赞
             Long childCommentId = discussCommentChild.getCommentId();
-            int likeNumber = discussCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
-            int dislikeNumber = discussCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+            int likeNumber = discussCommentChildLikeStatistics.selectPositiveNumber(childCommentId);
+            int dislikeNumber = discussCommentChildLikeStatistics.selectNegativeNumber(childCommentId);
             discussCommentChildBO.setLike(likeNumber);
             discussCommentChildBO.setDislike(dislikeNumber);
             return discussCommentChildBO;
@@ -149,15 +150,15 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean positiveOperate = discussCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        if (positiveOperate) {
+        discussCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
             DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
             Long topicId = discussCommentChild.getTopicId();
             messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
         }
-        return positiveOperate;
+        return true;
     }
 
     @Override
@@ -165,15 +166,15 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean negativeOperate = discussCommentChildLikeStatistics.setNegativeOperate(commentId, uid);
-        if (negativeOperate) {
+        discussCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
             DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
             Long topicId = discussCommentChild.getTopicId();
             messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
         }
-        return negativeOperate;
+        return true;
     }
 
     @Override

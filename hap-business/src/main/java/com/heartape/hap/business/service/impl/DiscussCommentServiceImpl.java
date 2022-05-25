@@ -96,7 +96,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         baseMapper.insert(discussComment);
         // 初始化热度
         Long commentId = discussComment.getCommentId();
-        int hot = discussCommentHotStatistics.operateIncrement(discussId, commentId, DiscussCommentHotStatistics.INIT_HOT);
+        int hot = discussCommentHotStatistics.updateIncrement(discussId, commentId, DiscussCommentHotStatistics.INIT_HOT);
         log.info("discussId:" + discussId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
@@ -112,8 +112,8 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
             BeanUtils.copyProperties(discussComment, discussCommentBO);
             // 获取高热度评论
             Long mainId = discussComment.getCommentId();
-            List<Long> childIds = discussCommentChildHotStatistics.operateNumberPage(mainId, 1, 2)
-                    .stream().map(ZSetOperations.TypedTuple::getValue).collect(Collectors.toList());
+            List<Long> childIds = discussCommentChildHotStatistics.selectPage(mainId, 1, 2)
+                    .stream().map(CumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
             // todo:控制字段
             queryWrapper.in(DiscussCommentChild::getCommentId, childIds);
@@ -124,8 +124,8 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
                 BeanUtils.copyProperties(discussCommentChild, discussCommentChildBO);
                 // 点赞
                 Long childCommentId = discussCommentChild.getCommentId();
-                int likeNumber = discussCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
-                int dislikeNumber = discussCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+                int likeNumber = discussCommentChildLikeStatistics.selectPositiveNumber(childCommentId);
+                int dislikeNumber = discussCommentChildLikeStatistics.selectNegativeNumber(childCommentId);
                 discussCommentChildBO.setLike(likeNumber);
                 discussCommentChildBO.setDislike(dislikeNumber);
                 return discussCommentChildBO;
@@ -133,8 +133,8 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
             discussCommentBO.setSimpleChildren(commentChildBOS);
             // 点赞
             Long commentId = discussComment.getCommentId();
-            int likeNumber = discussCommentLikeStatistics.getPositiveOperateNumber(commentId);
-            int dislikeNumber = discussCommentLikeStatistics.getNegativeOperateNumber(commentId);
+            int likeNumber = discussCommentLikeStatistics.selectPositiveNumber(commentId);
+            int dislikeNumber = discussCommentLikeStatistics.selectNegativeNumber(commentId);
             discussCommentBO.setLike(likeNumber);
             discussCommentBO.setDislike(dislikeNumber);
             return discussCommentBO;
@@ -148,15 +148,16 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean positiveOperate = discussCommentLikeStatistics.setPositiveOperate(commentId, uid);
-        if (positiveOperate) {
+        // todo:将TypeNumber封装并返回
+        TypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
             DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
             Long topicId = discussComment.getTopicId();
             messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
         }
-        return positiveOperate;
+        return true;
     }
 
     @Override
@@ -164,15 +165,16 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean negativeOperate = discussCommentLikeStatistics.setNegativeOperate(commentId, uid);
-        if (negativeOperate) {
+        // todo:将TypeNumber封装并返回
+        discussCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
             DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
             Long topicId = discussComment.getTopicId();
             messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
         }
-        return negativeOperate;
+        return true;
     }
 
     @Override

@@ -62,13 +62,6 @@ public class LabelController {
         return Result.success();
     }
 
-    @PostMapping("/follow")
-    @ApiOperation("关注标签")
-    public Result follow(@RequestParam Long labelId) {
-        boolean follow = labelService.follow(labelId);
-        return Result.success(follow);
-    }
-
     /**
      * todo:拆分到后台管理模块
      */

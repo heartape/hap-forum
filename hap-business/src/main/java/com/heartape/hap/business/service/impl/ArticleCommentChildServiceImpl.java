@@ -19,9 +19,7 @@ import com.heartape.hap.business.mapper.ArticleCommentMapper;
 import com.heartape.hap.business.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.business.service.IArticleCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.business.statistics.ArticleCommentChildHotStatistics;
-import com.heartape.hap.business.statistics.ArticleCommentChildLikeStatistics;
-import com.heartape.hap.business.statistics.ArticleHotStatistics;
+import com.heartape.hap.business.statistics.*;
 import com.heartape.hap.business.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -86,7 +84,7 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         baseMapper.insert(articleCommentChild);
         // 初始化热度
         Long commentId = articleCommentChild.getCommentId();
-        int hot = articleCommentChildHotStatistics.operateIncrement(parentId, commentId, ArticleHotStatistics.INIT_HOT);
+        int hot = articleCommentChildHotStatistics.updateIncrement(parentId, commentId, HeatDeltaEnum.ARTICLE_INIT.getDelta());
         log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
@@ -118,7 +116,7 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         baseMapper.insert(articleCommentChild);
         // 初始化热度
         Long commentId = articleCommentChild.getCommentId();
-        int hot = articleCommentChildHotStatistics.operateIncrement(parentId, commentId, ArticleHotStatistics.INIT_HOT);
+        int hot = articleCommentChildHotStatistics.updateIncrement(parentId, commentId, HeatDeltaEnum.ARTICLE_INIT.getDelta());
         log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
     }
 
@@ -137,8 +135,8 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
             BeanUtils.copyProperties(child, childBO);
             // 点赞
             Long childCommentId = child.getCommentId();
-            int likeNumber = articleCommentChildLikeStatistics.getPositiveOperateNumber(childCommentId);
-            int dislikeNumber = articleCommentChildLikeStatistics.getNegativeOperateNumber(childCommentId);
+            int likeNumber = articleCommentChildLikeStatistics.selectPositiveNumber(childCommentId);
+            int dislikeNumber = articleCommentChildLikeStatistics.selectNegativeNumber(childCommentId);
             childBO.setLike(likeNumber);
             childBO.setDislike(dislikeNumber);
             return childBO;
@@ -154,15 +152,15 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean positiveOperate = articleCommentChildLikeStatistics.setPositiveOperate(commentId, uid);
-        if (positiveOperate) {
+        articleCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
             ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
             Long articleId = articleCommentChild.getArticleId();
             messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
         }
-        return positiveOperate;
+        return true;
     }
 
     @Override
@@ -170,15 +168,15 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean negativeOperate = articleCommentChildLikeStatistics.setNegativeOperate(commentId, uid);
-        if (negativeOperate) {
+        articleCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
             ArticleCommentChild articleCommentChild = baseMapper.selectOne(queryWrapper.select(ArticleCommentChild::getArticleId).eq(ArticleCommentChild::getCommentId, commentId));
             Long articleId = articleCommentChild.getArticleId();
             messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT_CHILD);
         }
-        return negativeOperate;
+        return true;
     }
 
     @Override

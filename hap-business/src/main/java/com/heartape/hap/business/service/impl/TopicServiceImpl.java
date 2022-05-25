@@ -22,7 +22,7 @@ import com.heartape.hap.business.mapper.TopicDiscussMapper;
 import com.heartape.hap.business.mapper.TopicMapper;
 import com.heartape.hap.business.service.ITopicService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.business.statistics.HotDeltaEnum;
+import com.heartape.hap.business.statistics.HeatDeltaEnum;
 import com.heartape.hap.business.statistics.TopicFollowStatistics;
 import com.heartape.hap.business.statistics.TopicHotStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
@@ -94,12 +94,12 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         baseMapper.insert(topic);
 
         Long topicId = topic.getTopicId();
-        int hot = topicHotStatistics.operateIncrement(topicId, TopicHotStatistics.INIT_HOT);
+        int hot = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.TOPIC_INIT.getDelta());
         log.info("topicId:" + topicId + "设置初始热度为" + hot);
     }
 
     @Override
-    public boolean follow(Long topicId) {
+    public int follow(Long topicId) {
         LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
         queryWrapper.eq(Topic::getTopicId, topicId);
         Long count = baseMapper.selectCount(queryWrapper);
@@ -107,10 +107,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         assertUtils.businessState(count.equals(1L), new RelyDataNotExistedException(message));
 
         long uid = tokenFeignService.getUid();
-        LocalDateTime now = LocalDateTime.now();
-        long timestamp = now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
         // 关注话题无需发送消息通知
-        return topicFollowStatistics.setOperate(topicId, uid, timestamp);
+        return topicFollowStatistics.insert(topicId, uid);
     }
 
     @Override
@@ -127,7 +125,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
             BeanUtils.copyProperties(topic, topicBO);
             // 热度
             Long topicId = topic.getTopicId();
-            int number = topicHotStatistics.operateNumber(topicId);
+            int number = topicHotStatistics.count(topicId);
             topicBO.setHot(number);
             return topicBO;
         }).collect(Collectors.toList());
@@ -147,8 +145,8 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         TopicBO topicBO = new TopicBO();
         BeanUtils.copyProperties(topic, topicBO);
         topicBO.setLabel(labelBOList);
-        int delta = HotDeltaEnum.TOPIC_SELECT.getDelta();
-        int i = topicHotStatistics.operateIncrement(topicId, delta);
+        int delta = HeatDeltaEnum.TOPIC_SELECT.getDelta();
+        int i = topicHotStatistics.updateIncrement(topicId, delta);
         log.info("话题查询热度增加，topicId：" + topicId + ",增加值：" + delta + ",当前热度：" + i);
         return topicBO;
     }

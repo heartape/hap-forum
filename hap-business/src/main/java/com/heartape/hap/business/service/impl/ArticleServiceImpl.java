@@ -23,7 +23,8 @@ import com.heartape.hap.business.statistics.ArticleHotStatistics;
 import com.heartape.hap.business.statistics.ArticleLikeStatistics;
 import com.heartape.hap.business.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.business.statistics.HotDeltaEnum;
+import com.heartape.hap.business.statistics.HeatDeltaEnum;
+import com.heartape.hap.business.statistics.TypeOperateStatistics;
 import com.heartape.hap.business.utils.AssertUtils;
 import com.heartape.hap.business.utils.StringTransformUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         this.baseMapper.insert(article);
         // 初始化热度
         Long articleId = article.getArticleId();
-        int hot = articleHotStatistics.operateIncrement(articleId, ArticleHotStatistics.INIT_HOT);
+        int hot = articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_INIT.getDelta());
         log.info("articleId:" + articleId + "设置初始热度为" + hot);
     }
 
@@ -113,8 +114,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             ArticleSimpleBO articleSimpleBO = new ArticleSimpleBO();
             BeanUtils.copyProperties(article, articleSimpleBO);
             // 点赞
-            int likeNumber = articleLikeStatistics.getPositiveOperateNumber(article.getArticleId());
-            int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(article.getArticleId());
+            int likeNumber = articleLikeStatistics.selectPositiveNumber(article.getArticleId());
+            int dislikeNumber = articleLikeStatistics.selectNegativeNumber(article.getArticleId());
             articleSimpleBO.setLike(likeNumber);
             articleSimpleBO.setDislike(dislikeNumber);
             return articleSimpleBO;
@@ -138,12 +139,12 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
             return labelBO;
         }).collect(Collectors.toList());
         articleBO.setLabel(label);
-        int likeNumber = articleLikeStatistics.getPositiveOperateNumber(articleId);
-        int dislikeNumber = articleLikeStatistics.getNegativeOperateNumber(articleId);
+        int likeNumber = articleLikeStatistics.selectPositiveNumber(articleId);
+        int dislikeNumber = articleLikeStatistics.selectNegativeNumber(articleId);
         articleBO.setLike(likeNumber);
         articleBO.setDislike(dislikeNumber);
-        int delta = HotDeltaEnum.ARTICLE_SELECT.getDelta();
-        int i = articleHotStatistics.operateIncrement(articleId, delta);
+        int delta = HeatDeltaEnum.ARTICLE_SELECT.getDelta();
+        int i = articleHotStatistics.updateIncrement(articleId, delta);
         log.info("文章查询热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
         return articleBO;
     }
@@ -153,14 +154,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean positiveOperate = articleLikeStatistics.setPositiveOperate(articleId, uid);
-        if (positiveOperate) {
+        articleLikeStatistics.insert(articleId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        if (true) {
             messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
-            int delta = HotDeltaEnum.ARTICLE_LIKE.getDelta();
-            int i = articleHotStatistics.operateIncrement(articleId, delta);
+            int delta = HeatDeltaEnum.ARTICLE_LIKE.getDelta();
+            int i = articleHotStatistics.updateIncrement(articleId, delta);
             log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
         }
-        return positiveOperate;
+        return true;
     }
 
     @Override
@@ -168,14 +169,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        boolean negativeOperate = articleLikeStatistics.setNegativeOperate(articleId, uid);
-        if (negativeOperate) {
+        articleLikeStatistics.insert(articleId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        if (true) {
             messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
-            int delta = HotDeltaEnum.ARTICLE_DISLIKE.getDelta();
-            int i = articleHotStatistics.operateIncrement(articleId, delta);
+            int delta = HeatDeltaEnum.ARTICLE_DISLIKE.getDelta();
+            int i = articleHotStatistics.updateIncrement(articleId, delta);
             log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
         }
-        return negativeOperate;
+        return true;
     }
 
     @Override

@@ -41,8 +41,8 @@ public class TopicController {
     @PostMapping("/follow")
     @ApiOperation("关注话题")
     public Result follow(@RequestParam Long topicId) {
-        boolean follow = topicService.follow(topicId);
-        return Result.success(follow);
+        int count = topicService.follow(topicId);
+        return Result.success(count);
     }
 
     @GetMapping("/list/hot")

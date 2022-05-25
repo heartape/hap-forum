@@ -1,12 +1,14 @@
 package com.heartape.hap.business;
 
+import com.heartape.hap.business.statistics.ArticleCommentHotStatistics;
 import com.heartape.hap.business.statistics.ArticleHotStatistics;
+import com.heartape.hap.business.statistics.CumulativeOperateStatistics;
+import com.heartape.hap.business.statistics.TopCumulativeOperateStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.ZSetOperations;
 
-import java.util.Set;
+import java.util.List;
 
 @SpringBootTest
 public class CumulativeOperateStatisticsTest {
@@ -14,11 +16,14 @@ public class CumulativeOperateStatisticsTest {
     @Autowired
     private ArticleHotStatistics articleHotStatistics;
 
+    @Autowired
+    private ArticleCommentHotStatistics articleCommentHotStatistics;
+
     @Test
     public void createArticleHotData() {
         long source = 100L;
-        for (int i = 0; i <100; i++) {
-            int i1 = articleHotStatistics.operateIncrement(source + i, i);
+        for (int i = 1; i <= 100; i++) {
+            int i1 = articleHotStatistics.updateIncrement(source + i, i);
             System.out.println(i1);
         }
     }
@@ -26,28 +31,42 @@ public class CumulativeOperateStatisticsTest {
     @Test
     public void testArticleHot1() {
         long source = 2L;
-        int i1 = articleHotStatistics.operateIncrement(source, 20);
+        int i1 = articleHotStatistics.updateIncrement(source, 20);
         System.out.println(i1);
-        int i2 = articleHotStatistics.operateDecrement(source, 5);
+        int i2 = articleHotStatistics.updateDecrement(source, 5);
         System.out.println(i2);
-        int i3 = articleHotStatistics.operateMultiple(source, 2);
+        int i3 = articleHotStatistics.updateMultiple(source, 2);
         System.out.println(i3);
-        int i = articleHotStatistics.operateNumber(source);
+        int i = articleHotStatistics.count(source);
         System.out.println(i);
-        int i4 = articleHotStatistics.operateNumberAll();
-        System.out.println(i4);
         // boolean i3 = articleHotStatistics.removeOperate(source);
         // System.out.println(i3);
     }
 
     @Test
     public void testArticleHot2() {
-        Set<ZSetOperations.TypedTuple<Long>> typedTuples = articleHotStatistics.operateNumberPage(2, 5);
-        for (ZSetOperations.TypedTuple<Long> typedTuple : typedTuples) {
-            Double score = typedTuple.getScore();
-            Long value = typedTuple.getValue();
-            System.out.println(value);
-            System.out.println(score);
+        List<TopCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleHotStatistics.selectPage(2, 5);
+        for (TopCumulativeOperateStatistics.CumulativeValue  cumulativeValue : cumulativeValues) {
+            Integer operate = cumulativeValue.getOperate();
+            Long resourceId = cumulativeValue.getResourceId();
+            System.out.println(resourceId);
+            System.out.println(operate);
         }
+    }
+
+    @Test
+    public void testArticleCommentHot() {
+        long mainId = 111L;
+        long targetId = 222L;
+        int increment1 = articleCommentHotStatistics.updateIncrement(mainId, targetId, 10);
+        System.out.println(increment1);
+        int increment2 = articleCommentHotStatistics.updateIncrement(mainId, targetId, -5);
+        System.out.println(increment2);
+        int multiple = articleCommentHotStatistics.updateMultiple(mainId, targetId, 2);
+        System.out.println(multiple);
+        int count = articleCommentHotStatistics.count(mainId, targetId);
+        System.out.println(count);
+        List<CumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentHotStatistics.selectPage(mainId, 1, 2);
+        System.out.println(cumulativeValues);
     }
 }
