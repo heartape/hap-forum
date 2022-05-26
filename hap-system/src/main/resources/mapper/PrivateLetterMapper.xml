@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.heartape.hap.mapper.PrivateLetterMapper">
+    <select id="selectCreatorList" resultType="com.heartape.hap.entity.PrivateLetter">
+        select uid, any_value(avatar) avatar, any_value(nickname) nickname, max(created_time) created_time
+        from private_letter t1
+        where target_uid = #{target_uid}
+            and uid not in
+            <foreach collection="blacklist" item="item" separator="," open="(" close=")">#{item}</foreach>
+            and status = 1
+        group by uid
+        order by max(created_time) desc
+    </select>
+</mapper>

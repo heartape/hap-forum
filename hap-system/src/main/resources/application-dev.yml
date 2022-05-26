@@ -1,0 +1,30 @@
+server:
+  port: 8083
+spring:
+  application:
+    # 在注册中心的服务名
+    name: hap-system
+  cloud:
+    nacos:
+      discovery:
+        # 启动的nacos的ip和端口
+        server-addr: 127.0.0.1:8848
+#  # 分库分表时删除datasource配置
+#  datasource:
+#    username: root
+#    password: root
+#    url: jdbc:mysql://localhost:3306/hap_forum
+#    driverClassName: com.mysql.cj.jdbc.Driver
+  rabbitmq:
+    host: 139.224.245.120
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /guest
+    publisher-confirm-type: correlated
+    publisher-returns: true
+    listener:
+      # 简单理解simple为一对一个消费者；direct理解为一对多个消费者
+      type: simple
+      simple:
+        acknowledge-mode: manual

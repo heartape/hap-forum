@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.heartape.hap.mapper.DiscussCommentMapper">
+
+    <select id="selectWithChildCount" resultType="com.heartape.hap.entity.DiscussComment">
+        select comment_id, uid, avatar, nickname, content,
+               (select count(*) from discuss_comment_child where parent_id = t1.comment_id and status = 1) total
+        from discuss_comment t1
+        where discuss_id = #{discuss_id}
+          and status = 1
+    </select>
+</mapper>
