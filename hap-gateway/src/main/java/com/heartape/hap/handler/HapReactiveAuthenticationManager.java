@@ -20,13 +20,11 @@ import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * 认证处理器，可以作为token认证和登录认证入口;
- * AuthenticationManager的逻辑可以实现多种认证方式的并存等能力
- * 在作为自定义的登录入口时,如果使用@Primary注解，会启用该处理器定为登录处理器
+ * token认证处理器
+ * 不同的认证方式需要不同的ReactiveAuthenticationManager实现类
  */
 @Slf4j
 @Component
-@Primary
 public class HapReactiveAuthenticationManager implements ReactiveAuthenticationManager {
 
     @Autowired

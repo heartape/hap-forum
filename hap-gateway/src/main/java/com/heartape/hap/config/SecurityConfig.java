@@ -10,8 +10,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-import java.util.LinkedList;
-
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
@@ -21,8 +19,6 @@ public class SecurityConfig {
     private HapAccessDeniedHandler accessDeniedHandler;
     @Autowired
     private HapAuthenticationEntryPoint entryPoint;
-    @Autowired
-    private HapReactiveAuthenticationManager hapReactiveAuthenticationManager;
     @Autowired
     private HapSecurityContextRepository hapSecurityContextRepository;
     @Autowired
@@ -47,13 +43,9 @@ public class SecurityConfig {
      */
     @Bean
     public ReactiveAuthenticationManager authenticationManager() {
-        LinkedList<ReactiveAuthenticationManager> managers = new LinkedList<>();
-
         UserDetailsRepositoryReactiveAuthenticationManager authenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
         authenticationManager.setPasswordEncoder(passwordEncoder());
-        managers.add(authenticationManager);
-        managers.add(hapReactiveAuthenticationManager);
-        return new DelegatingReactiveAuthenticationManager(managers);
+        return authenticationManager;
     }
 
     /**

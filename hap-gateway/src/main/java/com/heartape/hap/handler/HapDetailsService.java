@@ -41,7 +41,7 @@ public class HapDetailsService implements ReactiveUserDetailsService {
     @Override
     public Mono<UserDetails> findByUsername(String s) {
         if (!tokenUtils.checkMail(s)) {
-            throw new LoginErrorException(String.format("登录用户名不是邮件格式,邮箱为: %s", s));
+            throw new LoginErrorException("登录用户名不是邮件格式,邮箱:" + s);
         }
         // 异步运行调用feign
         CompletableFuture<Result> future = CompletableFuture.supplyAsync(() -> oauthFeign.mailPasswordLogin(s));
