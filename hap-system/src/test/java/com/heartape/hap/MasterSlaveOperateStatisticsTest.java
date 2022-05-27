@@ -1,8 +1,8 @@
 package com.heartape.hap;
 
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.statistics.AbstractMasterSlaveOperateStatistics;
 import com.heartape.hap.statistics.ArticleCollectionStatistics;
-import com.heartape.hap.statistics.MasterSlaveOperateStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,8 +38,8 @@ public class MasterSlaveOperateStatisticsTest {
         long total = articleCollectionStatistics.total(masterId);
         System.out.println(total);
 
-        List<MasterSlaveOperateStatistics.Slave> select = articleCollectionStatistics.select(masterId, 1, 2);
-        PageInfo<MasterSlaveOperateStatistics.Slave> pageInfo = PageInfo.of(select);
+        List<AbstractMasterSlaveOperateStatistics.Slave> select = articleCollectionStatistics.select(masterId, 1, 2);
+        PageInfo<AbstractMasterSlaveOperateStatistics.Slave> pageInfo = PageInfo.of(select);
         System.out.println(pageInfo);
     }
 

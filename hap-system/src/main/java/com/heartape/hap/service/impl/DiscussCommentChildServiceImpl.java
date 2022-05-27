@@ -19,9 +19,9 @@ import com.heartape.hap.mapper.DiscussCommentMapper;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import com.heartape.hap.statistics.DiscussCommentChildHotStatistics;
 import com.heartape.hap.statistics.DiscussCommentChildLikeStatistics;
-import com.heartape.hap.statistics.TypeOperateStatistics;
 import com.heartape.hap.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -150,7 +150,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        discussCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
@@ -166,7 +166,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        discussCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();

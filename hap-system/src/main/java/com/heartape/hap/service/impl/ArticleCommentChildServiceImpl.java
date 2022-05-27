@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.ArticleComment;
@@ -19,10 +20,9 @@ import com.heartape.hap.mapper.ArticleCommentMapper;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.service.IArticleCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import com.heartape.hap.statistics.ArticleCommentChildHotStatistics;
 import com.heartape.hap.statistics.ArticleCommentChildLikeStatistics;
-import com.heartape.hap.statistics.HeatDeltaEnum;
-import com.heartape.hap.statistics.TypeOperateStatistics;
 import com.heartape.hap.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -155,7 +155,7 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        articleCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
@@ -171,7 +171,7 @@ public class ArticleCommentChildServiceImpl extends ServiceImpl<ArticleCommentCh
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentChildLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        articleCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();

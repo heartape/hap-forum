@@ -18,11 +18,8 @@ public class TokenFeignServiceImpl {
     @Autowired
     private AssertUtils assertUtils;
 
-    @Autowired
-    private HttpUtils httpUtils;
-
     public long getUid() {
-        String token = httpUtils.getToken(httpUtils.getRequest());
+        String token = HttpUtils.getToken(HttpUtils.getRequest());
         Result result = tokenFeignService.getUid(token);
         String path = "/api/oauth/uid";
         check(result, path);
@@ -39,7 +36,7 @@ public class TokenFeignServiceImpl {
     }
 
     public HapUserDetails getTokenInfo() {
-        String token = httpUtils.getToken(httpUtils.getRequest());
+        String token = HttpUtils.getToken(HttpUtils.getRequest());
         Result result = tokenFeignService.getTokenInfo(token);
         String path = "/api/oauth/token";
         check(result, path);

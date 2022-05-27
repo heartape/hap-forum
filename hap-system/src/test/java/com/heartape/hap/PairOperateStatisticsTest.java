@@ -1,7 +1,7 @@
 package com.heartape.hap;
 
+import com.heartape.hap.statistics.AbstractPairOperateStatistics;
 import com.heartape.hap.statistics.CreatorFollowStatistics;
-import com.heartape.hap.statistics.PairOperateStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -65,7 +65,7 @@ public class PairOperateStatisticsTest {
         System.out.println(target1);
         long target2 = creatorFollowStatistics.selectTarget(targetId2);
         System.out.println(target2);
-        List<PairOperateStatistics.Target> targets = creatorFollowStatistics.page(sponsorId1, 1, 2);
+        List<AbstractPairOperateStatistics.Target> targets = creatorFollowStatistics.page(sponsorId1, 1, 2);
         System.out.println(targets);
     }
 }

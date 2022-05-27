@@ -1,7 +1,7 @@
 package com.heartape.hap.handler;
 
+import com.heartape.hap.constant.HttpConstant;
 import com.heartape.hap.entity.LoginCode;
-import com.heartape.hap.constant.OauthConstant;
 import com.heartape.hap.feign.OauthFeign;
 import com.heartape.hap.exception.LoginForbiddenException;
 import com.heartape.hap.exception.SystemErrorException;
@@ -36,8 +36,8 @@ public class PreLoginHandler implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
         if ("/login".equals(path)) {
-            List<String> codeIds = exchange.getRequest().getHeaders().getValuesAsList(OauthConstant.CODE_ID_HEADER_NAME);
-            List<String> codes = exchange.getRequest().getHeaders().getValuesAsList(OauthConstant.CODE_HEADER_NAME);
+            List<String> codeIds = exchange.getRequest().getHeaders().getValuesAsList(HttpConstant.HEADER_CODE_ID);
+            List<String> codes = exchange.getRequest().getHeaders().getValuesAsList(HttpConstant.HEADER_CODE);
             if (codeIds.isEmpty() || codes.isEmpty()) {
                 throw new LoginForbiddenException("验证码或验证码id为空");
             }
@@ -45,7 +45,7 @@ public class PreLoginHandler implements WebFilter {
             String code = codes.get(0);
             if (!StringUtils.hasText(codeId) || !StringUtils.hasText(code)) {
                 throw new LoginForbiddenException("验证码或验证码id为空");
-            } else if (code.length() < OauthConstant.CODE_LENGTH) {
+            } else if (code.length() < HttpConstant.CODE_LENGTH) {
                 throw new LoginForbiddenException("验证码长度不符合规定");
             }
             CompletableFuture<Result> future = CompletableFuture.supplyAsync(() -> oauthFeign.checkCode(new LoginCode(codeId, code)));

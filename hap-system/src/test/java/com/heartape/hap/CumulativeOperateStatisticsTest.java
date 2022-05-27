@@ -1,9 +1,9 @@
 package com.heartape.hap;
 
+import com.heartape.hap.statistics.AbstractCumulativeOperateStatistics;
+import com.heartape.hap.statistics.AbstractTopCumulativeOperateStatistics;
 import com.heartape.hap.statistics.ArticleCommentHotStatistics;
 import com.heartape.hap.statistics.ArticleHotStatistics;
-import com.heartape.hap.statistics.CumulativeOperateStatistics;
-import com.heartape.hap.statistics.TopCumulativeOperateStatistics;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +33,7 @@ public class CumulativeOperateStatisticsTest {
         long source = 2L;
         int i1 = articleHotStatistics.updateIncrement(source, 20);
         System.out.println(i1);
-        int i2 = articleHotStatistics.updateDecrement(source, 5);
+        int i2 = articleHotStatistics.updateIncrement(source, -5);
         System.out.println(i2);
         int i3 = articleHotStatistics.updateMultiple(source, 2);
         System.out.println(i3);
@@ -45,8 +45,8 @@ public class CumulativeOperateStatisticsTest {
 
     @Test
     public void testArticleHot2() {
-        List<TopCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleHotStatistics.selectPage(2, 5);
-        for (TopCumulativeOperateStatistics.CumulativeValue  cumulativeValue : cumulativeValues) {
+        List<AbstractTopCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleHotStatistics.selectPage(2, 5);
+        for (AbstractTopCumulativeOperateStatistics.CumulativeValue  cumulativeValue : cumulativeValues) {
             Integer operate = cumulativeValue.getOperate();
             Long resourceId = cumulativeValue.getResourceId();
             System.out.println(resourceId);
@@ -66,7 +66,7 @@ public class CumulativeOperateStatisticsTest {
         System.out.println(multiple);
         int count = articleCommentHotStatistics.count(mainId, targetId);
         System.out.println(count);
-        List<CumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentHotStatistics.selectPage(mainId, 1, 2);
+        List<AbstractCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentHotStatistics.selectPage(mainId, 1, 2);
         System.out.println(cumulativeValues);
     }
 }

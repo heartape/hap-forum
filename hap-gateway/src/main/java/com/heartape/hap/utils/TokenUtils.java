@@ -1,6 +1,6 @@
 package com.heartape.hap.utils;
 
-import com.heartape.hap.constant.RedisKeys;
+import com.heartape.hap.constant.LoginConstant;
 import com.heartape.hap.exception.LoginForbiddenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,12 +52,12 @@ public class TokenUtils {
      * 用户10分钟之内最多进行10次登录
      */
     public void loginTimesWithinRange(String username) {
-        String login = String.format(RedisKeys.loginKey, username);
+        String login = LoginConstant.LOGIN_KEY + username;
 
         Integer times = intRedisTemplate.opsForValue().get(login);
         if (times == null) {
             intRedisTemplate.opsForValue().set(login,1,10, TimeUnit.MINUTES);
-        } else if (times > 0 && times < RedisKeys.MAX_LOGIN_TIMES) {
+        } else if (times > 0 && times < LoginConstant.MAX_LOGIN_TIMES) {
             intRedisTemplate.opsForValue().increment(login);
         } else {
             throw new LoginForbiddenException("用户连续登录超过10次");

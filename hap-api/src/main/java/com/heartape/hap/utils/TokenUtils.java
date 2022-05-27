@@ -14,16 +14,15 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.heartape.hap.constant.HttpConstant.*;
 
 /**
  * token操作工具类
@@ -43,24 +42,6 @@ public class TokenUtils {
     @Value("${token.secret}")
     private String secret;
 
-    @Value("${token.expireTime}")
-    private Integer tokenExpireTime;
-
-    /**请求头*/
-    @Value("${token.header}")
-    private String header;
-
-    /**登录验证码有效时间*/
-    @Value("${code.expireTime}")
-    private Integer codeExpireTime;
-
-    /** 令牌中的token对应的key */
-    private final String TOKEN_KEY = "token_key";
-    /** redis的code的key前缀 */
-    private final String TOKEN_KEY_HEADER = "hap.token:%s:string";
-    /** redis的code的key前缀 */
-    private final String CODE_KEY_HEADER = "hap.code:%s:string";
-
     /**
      * 新的验证码
      */
@@ -71,8 +52,8 @@ public class TokenUtils {
         // base64格式前加上 data:image/jpg;base64,/
         String imageBase64Data = shearCaptcha.getImageBase64Data();
         String code = shearCaptcha.getCode();
-        String codeKey = String.format(CODE_KEY_HEADER, codeId);
-        stringRedisTemplate.opsForValue().set(codeKey,code,codeExpireTime, TimeUnit.SECONDS);
+        String codeKey = CODE_KEY_HEADER + codeId;
+        stringRedisTemplate.opsForValue().set(codeKey,code,CODE_EXPIRE_TIME, TimeUnit.SECONDS);
         return new LoginCode(codeId, imageBase64Data);
     }
 
@@ -80,7 +61,7 @@ public class TokenUtils {
      * 校验验证码
      */
     public boolean checkCode(LoginCodeRO loginCode) {
-        String codeKey = String.format(CODE_KEY_HEADER, loginCode.getCodeId());
+        String codeKey = CODE_KEY_HEADER + loginCode.getCodeId();
         String codeValue = stringRedisTemplate.opsForValue().get(codeKey);
         return StringUtils.hasText(codeValue) && codeValue.equals(loginCode.getCode());
     }
@@ -100,7 +81,7 @@ public class TokenUtils {
      */
     private String autograph(String uuid){
         HashMap<String, Object> claims = new HashMap<>();
-        claims.put(TOKEN_KEY, uuid);
+        claims.put(TOKEN_JWT, uuid);
         String token = Jwts
                 .builder()
                 .setClaims(claims)
@@ -124,8 +105,8 @@ public class TokenUtils {
      * 创建token
      */
     public String create(HapUserDetails hapUserDetails){
-        String tokenKey = String.format(TOKEN_KEY_HEADER,UUID.randomUUID());
-        redisTemplate.opsForValue().set(tokenKey, hapUserDetails, tokenExpireTime, TimeUnit.DAYS);
+        String tokenKey = TOKEN_KEY_HEADER + UUID.randomUUID();
+        redisTemplate.opsForValue().set(tokenKey, hapUserDetails, TOKEN_EXPIRE_TIME, TimeUnit.DAYS);
         return autograph(tokenKey);
     }
 
@@ -140,14 +121,14 @@ public class TokenUtils {
     }
 
     public String getToken(HttpServletRequest httpServletRequest) {
-        return httpServletRequest.getHeader(header);
+        return httpServletRequest.getHeader(HEADER_TOKEN);
     }
 
     /**
      * token解签名后获取redis key
      */
     public String getTokenKey(Claims claims) {
-        return (String) claims.get(TOKEN_KEY);
+        return (String) claims.get(TOKEN_JWT);
     }
 
     /**
@@ -161,7 +142,7 @@ public class TokenUtils {
      * 获取用户信息
      */
     public HapUserDetails getUserDetails() {
-        String token = getToken(getRequest());
+        String token = getToken(HttpUtils.getRequest());
         Claims claims = parseAutograph(token);
         String tokenKey = getTokenKey(claims);
         return getTokenValue(tokenKey);
@@ -171,33 +152,11 @@ public class TokenUtils {
      * 获取用户id
      */
     public long getUid(){
-        String token = getToken(getRequest());
+        String token = getToken(HttpUtils.getRequest());
         Claims claims = parseAutograph(token);
         String tokenKey = getTokenKey(claims);
         HapUserDetails userDetails = getTokenValue(tokenKey);
         return userDetails.getUid();
-    }
-
-    /**
-     * 获取request
-     */
-    public HttpServletRequest getRequest() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            throw new RuntimeException();
-        }
-        return attributes.getRequest();
-    }
-
-    /**
-     * 获取request
-     */
-    public HttpServletResponse getResponse() {
-        ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();
-        if (attributes == null) {
-            throw new RuntimeException();
-        }
-        return attributes.getResponse();
     }
 
 }

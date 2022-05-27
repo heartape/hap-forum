@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.Article;
@@ -108,8 +109,8 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
             BeanUtils.copyProperties(comment, articleCommentBO);
             // 从热度统计中获取较高的子评论
             Long mainId = comment.getCommentId();
-            List<CumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentChildHotStatistics.selectPage(mainId, 1, 2);
-            List<Long> commentIds = cumulativeValues.stream().map(CumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
+            List<AbstractCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentChildHotStatistics.selectPage(mainId, 1, 2);
+            List<Long> commentIds = cumulativeValues.stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
             queryWrapper.select(ArticleCommentChild::getCommentId,
                     ArticleCommentChild::getUid,ArticleCommentChild::getAvatar,ArticleCommentChild::getNickname, ArticleCommentChild::getChildToChild,
@@ -145,7 +146,7 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        articleCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
@@ -162,7 +163,7 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        articleCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();

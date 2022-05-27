@@ -1,5 +1,6 @@
 package com.heartape.hap.exception;
 
+import com.heartape.hap.constant.BusinessExceptionEnum;
 import lombok.Getter;
 
 @Getter

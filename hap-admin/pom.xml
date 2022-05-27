@@ -10,7 +10,7 @@
     </parent>
     <groupId>com.heartape</groupId>
     <artifactId>hap-admin</artifactId>
-    <version>v0.1.0</version>
+    <version>0.0.1</version>
     <name>hap-admin</name>
     <description>hap后台管理模块</description>
     <properties>

@@ -13,7 +13,7 @@ import javax.validation.constraints.Email;
 public class CreatorRO {
 
     @ApiModelProperty(value = "邮箱")
-    @Length(min = 8, max = 16, message = "请输入8-16位长度的密码")
+    @Length(min = 4, max = 32, message = "请输入4-32位长度的邮箱")
     @Email(message = "不符合规范的邮箱", regexp = "^[a-zA-Z0-9][\\w\\.-]*[a-zA-Z0-9]@[a-zA-Z0-9][\\w\\.-]*\\.[a-zA-Z][a-zA-Z\\.]*[a-zA-Z]$")
     private String email;
 

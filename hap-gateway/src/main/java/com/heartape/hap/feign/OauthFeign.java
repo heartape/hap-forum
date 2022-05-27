@@ -1,6 +1,6 @@
 package com.heartape.hap.feign;
 
-import com.heartape.hap.constant.OauthConstant;
+import com.heartape.hap.constant.HttpConstant;
 import com.heartape.hap.entity.HapUserDetails;
 import com.heartape.hap.entity.LoginCode;
 import com.heartape.hap.entity.LoginInfo;
@@ -38,7 +38,7 @@ public interface OauthFeign {
      * 获取token信息
      */
     @GetMapping("/api/oauth/token")
-    Result token(@RequestHeader(OauthConstant.HEADER_TOKEN) String token);
+    Result token(@RequestHeader(HttpConstant.HEADER_TOKEN) String token);
 
     /**
      * 创建token

@@ -25,7 +25,8 @@ public class HapAuthenticationFailureHandler implements ServerAuthenticationFail
         ServerHttpResponse response = webFilterExchange.getExchange().getResponse();
         String path = request.getPath().toString();
         DataBufferFactory dataBufferFactory = response.bufferFactory();
-        ErrorResult result = ErrorResult.error(HttpStatus.FORBIDDEN, ResultCode.USER_LOGIN_ERROR,path);
+        // todo:修改http状态码
+        ErrorResult result = ErrorResult.error(ResultCode.USER_LOGIN_ERROR,path);
         DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
         return response.writeWith(Mono.just(dataBuffer));
     }

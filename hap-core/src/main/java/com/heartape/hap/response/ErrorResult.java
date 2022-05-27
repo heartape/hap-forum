@@ -1,17 +1,12 @@
 package com.heartape.hap.response;
 
-import com.heartape.hap.exception.BusinessExceptionEnum;
+import com.heartape.hap.constant.BusinessExceptionEnum;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
 @Data
 public class ErrorResult {
-    /** HTTP状态码 */
-    private Integer status;
-    /** HTTP异常提示 */
-    private String error;
     /** 系统内部状态码 */
     private Integer code;
     /** 异常精简信息 */
@@ -27,9 +22,6 @@ public class ErrorResult {
 
     public static ErrorResult error(BusinessExceptionEnum exceptionEnum, String path) {
         ErrorResult errorResult = new ErrorResult();
-        HttpStatus httpStatus = exceptionEnum.getHttpStatus();
-        errorResult.status = httpStatus.value();
-        errorResult.error = httpStatus.getReasonPhrase();
         errorResult.code = exceptionEnum.getResultCode().getCode();
         errorResult.message = exceptionEnum.getResultCode().getMessage();
         errorResult.path = path;
@@ -37,10 +29,8 @@ public class ErrorResult {
         return errorResult;
     }
 
-    public static ErrorResult error(HttpStatus httpStatus, ResultCode resultCode, String path) {
+    public static ErrorResult error(ResultCode resultCode, String path) {
         ErrorResult errorResult = new ErrorResult();
-        errorResult.status = httpStatus.value();
-        errorResult.error = httpStatus.getReasonPhrase();
         errorResult.code = resultCode.getCode();
         errorResult.message = resultCode.getMessage();
         errorResult.path = path;

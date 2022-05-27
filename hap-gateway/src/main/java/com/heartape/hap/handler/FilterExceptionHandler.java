@@ -49,7 +49,8 @@ public class FilterExceptionHandler implements ErrorWebExceptionHandler {
                 .flatMap(response -> {
                     response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
                     DataBufferFactory dataBufferFactory = response.bufferFactory();
-                    ErrorResult result = ErrorResult.error(HttpStatus.FORBIDDEN, resultCode,path);
+                    // todo:修改http状态码
+                    ErrorResult result = ErrorResult.error(resultCode,path);
                     DataBuffer buffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
                     return response.writeWith(Mono.just(buffer));
                 });

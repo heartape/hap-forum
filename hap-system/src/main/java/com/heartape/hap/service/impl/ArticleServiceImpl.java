@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.Article;
@@ -18,12 +19,11 @@ import com.heartape.hap.mapper.ArticleCommentChildMapper;
 import com.heartape.hap.mapper.ArticleCommentMapper;
 import com.heartape.hap.mapper.ArticleMapper;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import com.heartape.hap.statistics.ArticleHotStatistics;
 import com.heartape.hap.statistics.ArticleLikeStatistics;
 import com.heartape.hap.service.IArticleService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.statistics.HeatDeltaEnum;
-import com.heartape.hap.statistics.TypeOperateStatistics;
 import com.heartape.hap.utils.AssertUtils;
 import com.heartape.hap.utils.StringTransformUtils;
 import com.heartape.hap.entity.bo.ArticleBO;
@@ -156,7 +156,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleLikeStatistics.insert(articleId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        articleLikeStatistics.insert(articleId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
             int delta = HeatDeltaEnum.ARTICLE_LIKE.getDelta();
@@ -171,7 +171,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleLikeStatistics.insert(articleId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        articleLikeStatistics.insert(articleId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
             int delta = HeatDeltaEnum.ARTICLE_DISLIKE.getDelta();

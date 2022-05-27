@@ -112,7 +112,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
             // 获取高热度评论
             Long mainId = discussComment.getCommentId();
             List<Long> childIds = discussCommentChildHotStatistics.selectPage(mainId, 1, 2)
-                    .stream().map(CumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
+                    .stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
             // todo:控制字段
             queryWrapper.in(DiscussCommentChild::getCommentId, childIds);
@@ -148,7 +148,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
         // todo:将TypeNumber封装并返回
-        TypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
@@ -165,7 +165,7 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
         // todo:将TypeNumber封装并返回
-        discussCommentLikeStatistics.insert(commentId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        discussCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             // 查询文章id
             LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();

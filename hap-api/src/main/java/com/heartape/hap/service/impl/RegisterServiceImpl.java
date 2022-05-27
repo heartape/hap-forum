@@ -53,24 +53,26 @@ public class RegisterServiceImpl implements IRegisterService {
     public void register(CreatorDTO creatorDTO) {
         String email = creatorDTO.getEmail();
         String mobile = creatorDTO.getMobile();
-        // todo:注册次数统计并限制
-        // 检查注册信息
-        boolean exists = creatorMapper.exists(new QueryWrapper<Creator>().eq("email", email).eq("mobile", mobile));
-        log.info("邮箱:" + email + ",手机号:" + mobile);
-        Assert.isTrue(!exists, "邮箱:" + email + ",或手机号:" + mobile + "已存在");
-
-        // 进行注册
-        String password = creatorDTO.getPassword();
-        String encodePassword = passwordEncoder.encode(password);
-
-        Creator creator = new Creator();
-        BeanUtils.copyProperties(creatorDTO, creator);
-        creator.setPassword(encodePassword);
-        creator.setRole(RoleEnum.CREATOR.getName());
-        creator.setAccountStatus(AccountStatusEnum.NORMAL.getCode());
-        creator.setProfile("这个人很懒,没有个人简介");
-        creator.setAvatar("https://file.heartape.com/picture/avatar-1.jpg");
-        creatorMapper.insert(creator);
+        System.out.println(email);
+        System.out.println(mobile);
+        // // todo:注册次数统计并限制
+        // // 检查注册信息
+        // boolean exists = creatorMapper.exists(new QueryWrapper<Creator>().eq("email", email).eq("mobile", mobile));
+        // log.info("邮箱:" + email + ",手机号:" + mobile);
+        // Assert.isTrue(!exists, "邮箱:" + email + ",或手机号:" + mobile + "已存在");
+        //
+        // // 进行注册
+        // String password = creatorDTO.getPassword();
+        // String encodePassword = passwordEncoder.encode(password);
+        //
+        // Creator creator = new Creator();
+        // BeanUtils.copyProperties(creatorDTO, creator);
+        // creator.setPassword(encodePassword);
+        // creator.setRole(RoleEnum.CREATOR.getName());
+        // creator.setAccountStatus(AccountStatusEnum.NORMAL.getCode());
+        // creator.setProfile("这个人很懒,没有个人简介");
+        // creator.setAvatar("https://file.heartape.com/picture/avatar-1.jpg");
+        // creatorMapper.insert(creator);
 
     }
 }

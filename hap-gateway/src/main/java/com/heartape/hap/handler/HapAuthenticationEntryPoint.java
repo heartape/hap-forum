@@ -26,7 +26,8 @@ public class HapAuthenticationEntryPoint implements ServerAuthenticationEntryPoi
         return Mono.defer(() -> Mono.just(serverWebExchange.getResponse())).flatMap(response -> {
             response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             DataBufferFactory dataBufferFactory = response.bufferFactory();
-            ErrorResult result = ErrorResult.error(HttpStatus.FORBIDDEN, ResultCode.USER_TOKEN_ERROR,path);
+            // todo:修改http状态码
+            ErrorResult result = ErrorResult.error(ResultCode.USER_TOKEN_ERROR,path);
             DataBuffer buffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
             return response.writeWith(Mono.just(buffer));
         });

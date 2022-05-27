@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.bo.TopicDiscussBO;
@@ -19,10 +20,9 @@ import com.heartape.hap.mapper.TopicMapper;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.service.ITopicDiscussService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import com.heartape.hap.statistics.DiscussHotStatistics;
 import com.heartape.hap.statistics.DiscussLikeStatistics;
-import com.heartape.hap.statistics.HeatDeltaEnum;
-import com.heartape.hap.statistics.TypeOperateStatistics;
 import com.heartape.hap.utils.AssertUtils;
 import com.heartape.hap.utils.StringTransformUtils;
 import com.heartape.hap.entity.DiscussComment;
@@ -140,7 +140,7 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussLikeStatistics.insert(discussId, uid, TypeOperateStatistics.TypeEnum.POSITIVE);
+        discussLikeStatistics.insert(discussId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
         if (true) {
             // 查询话题id
             LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
@@ -156,7 +156,7 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussLikeStatistics.insert(discussId, uid, TypeOperateStatistics.TypeEnum.NEGATIVE);
+        discussLikeStatistics.insert(discussId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
         if (true) {
             // 查询话题id
             LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
