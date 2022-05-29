@@ -1,5 +1,6 @@
 package com.heartape.hap.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.heartape.hap.response.Result;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -18,7 +19,7 @@ public class HapLogoutSuccessHandler implements ServerLogoutSuccessHandler {
             DataBufferFactory dataBufferFactory = response.bufferFactory();
             // todo:退出删除token
             Result result = Result.success();
-            DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
+            DataBuffer dataBuffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
             return response.writeWith(Mono.just(dataBuffer));
         }));
     }

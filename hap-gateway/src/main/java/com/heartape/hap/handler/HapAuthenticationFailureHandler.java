@@ -1,5 +1,6 @@
 package com.heartape.hap.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.heartape.hap.response.ErrorResult;
 import com.heartape.hap.response.ResultCode;
@@ -27,7 +28,7 @@ public class HapAuthenticationFailureHandler implements ServerAuthenticationFail
         DataBufferFactory dataBufferFactory = response.bufferFactory();
         // todo:修改http状态码
         ErrorResult result = ErrorResult.error(ResultCode.USER_LOGIN_ERROR,path);
-        DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
+        DataBuffer dataBuffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
         return response.writeWith(Mono.just(dataBuffer));
     }
 }

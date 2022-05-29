@@ -1,5 +1,6 @@
 package com.heartape.hap.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.gson.Gson;
 import com.heartape.hap.entity.HapUserDetails;
 import com.heartape.hap.exception.SystemErrorException;
@@ -40,7 +41,7 @@ public class HapAuthenticationSuccessHandler implements ServerAuthenticationSucc
             }
             String token = (String) data.getData();
             Result result = Result.success(token);
-            DataBuffer dataBuffer = dataBufferFactory.wrap(new Gson().toJson(result).getBytes());
+            DataBuffer dataBuffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
             return response.writeWith(Mono.just(dataBuffer));
         }));
     }
