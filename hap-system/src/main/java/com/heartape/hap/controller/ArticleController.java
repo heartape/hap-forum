@@ -1,12 +1,14 @@
 package com.heartape.hap.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.entity.bo.ArticleSimpleBO;
 import com.heartape.hap.entity.bo.ArticleBO;
 import com.heartape.hap.entity.dto.ArticleDTO;
 import com.heartape.hap.entity.ro.ArticleRO;
 import com.heartape.hap.response.Result;
 import com.heartape.hap.service.IArticleService;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
@@ -49,20 +51,21 @@ public class ArticleController {
     @ApiOperation("文章详情")
     public Result detail(@RequestParam Long articleId) {
         ArticleBO article = articleService.detail(articleId);
+        articleService.heatChange(articleId, HeatDeltaEnum.ARTICLE_SELECT.getDelta());
         return Result.success(article);
     }
 
     @PutMapping("/like")
     @ApiOperation("点赞文章")
     public Result like(@RequestParam Long articleId) {
-        boolean like = articleService.like(articleId);
+        AbstractTypeOperateStatistics.TypeNumber like = articleService.like(articleId);
         return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("踩文章")
     public Result dislike(@RequestParam Long articleId) {
-        boolean dislike = articleService.dislike(articleId);
+        AbstractTypeOperateStatistics.TypeNumber dislike = articleService.dislike(articleId);
         return Result.success(dislike);
     }
 

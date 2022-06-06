@@ -1,11 +1,15 @@
 package com.heartape.hap.mq.producer.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.constant.RabbitMqExchangeRouterConstant;
+import com.heartape.hap.entity.MessageNotification;
 import com.heartape.hap.entity.dto.MessageNotificationCreateDTO;
 import com.heartape.hap.entity.dto.MessageNotificationSendDTO;
+import com.heartape.hap.mapper.MessageNotificationMapper;
 import com.heartape.hap.mq.RabbitMQProducer;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,27 +21,30 @@ public class MessageNotificationProducerImpl implements IMessageNotificationProd
     @Autowired
     private RabbitMQProducer rabbitMQProducer;
 
+    @Autowired
+    private MessageNotificationMapper notificationMapper;
+
     @Override
-    public void likeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType) {
-        // todo:创建消息通知流水表，用于防止重复发送
-        // todo:未重复发送就增加热度
-        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_EXCHANGE;
-        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_ROUTING_KEY;
-        MessageNotificationCreateDTO messageNotificationCreateDTO = create(uid, nickname, mainId, mainType, targetId, targetType, MessageNotificationActionEnum.LIKE);
-        rabbitMQProducer.sendMessage(exchange, routingKey, messageNotificationCreateDTO);
+    public boolean exists(Long uid, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType, MessageNotificationActionEnum action) {
+        LambdaQueryWrapper<MessageNotification> queryWrapper = new QueryWrapper<MessageNotification>().lambda();
+        queryWrapper
+                .eq(MessageNotification::getUid, uid)
+                .eq(MessageNotification::getMainId, mainId)
+                .eq(MessageNotification::getMainType, mainType.getTypeCode())
+                .eq(MessageNotification::getTargetId, targetId)
+                .eq(MessageNotification::getTargetType, targetType.getTypeCode());
+        return notificationMapper.exists(queryWrapper);
     }
 
     @Override
-    public void dislikeCreate(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType) {
-        // todo:创建消息通知流水表，用于防止重复发送
-        // todo:未重复发送就增加热度
-        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_EXCHANGE;
-        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_ROUTING_KEY;
-        MessageNotificationCreateDTO messageNotificationCreateDTO = create(uid, nickname, mainId, mainType, targetId, targetType, MessageNotificationActionEnum.DISLIKE);
+    public void create(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType, MessageNotificationActionEnum actionEnum) {
+        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_EXCHANGE;
+        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_ROUTING_KEY;
+        MessageNotificationCreateDTO messageNotificationCreateDTO = exchange(uid, nickname, mainId, mainType, targetId, targetType, actionEnum);
         rabbitMQProducer.sendMessage(exchange, routingKey, messageNotificationCreateDTO);
     }
 
-    private MessageNotificationCreateDTO create(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType, MessageNotificationActionEnum actionEnum) {
+    private MessageNotificationCreateDTO exchange(Long uid, String nickname, Long mainId, MessageNotificationMainTypeEnum mainType, Long targetId, MessageNotificationTargetTypeEnum targetType, MessageNotificationActionEnum actionEnum) {
         MessageNotificationCreateDTO messageNotificationCreateDTO = new MessageNotificationCreateDTO();
         messageNotificationCreateDTO.setAction(actionEnum.getCode());
         messageNotificationCreateDTO.setUid(uid);
@@ -50,16 +57,9 @@ public class MessageNotificationProducerImpl implements IMessageNotificationProd
     }
 
     @Override
-    public void likeSend(MessageNotificationSendDTO messageNotificationSendDTO) {
-        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_EXCHANGE;
-        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_ROUTING_KEY;
-        rabbitMQProducer.sendMessage(exchange, routingKey, messageNotificationSendDTO);
-    }
-
-    @Override
-    public void dislikeSend(MessageNotificationSendDTO messageNotificationSendDTO) {
-        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_EXCHANGE;
-        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_ROUTING_KEY;
+    public void send(MessageNotificationSendDTO messageNotificationSendDTO) {
+        String exchange = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_EXCHANGE;
+        String routingKey = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_ROUTING_KEY;
         rabbitMQProducer.sendMessage(exchange, routingKey, messageNotificationSendDTO);
     }
 }

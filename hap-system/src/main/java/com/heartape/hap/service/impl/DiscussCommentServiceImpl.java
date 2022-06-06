@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
+import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.DiscussComment;
@@ -27,7 +29,12 @@ import com.heartape.hap.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -66,11 +73,21 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     private IMessageNotificationProducer messageNotificationProducer;
 
     @Autowired
+    private TopicHotStatistics topicHotStatistics;
+
+    @Autowired
+    private DiscussHotStatistics discussHotStatistics;
+
+    @Autowired
     private DiscussCommentHotStatistics discussCommentHotStatistics;
 
     @Autowired
     private DiscussCommentChildHotStatistics discussCommentChildHotStatistics;
 
+    @Caching(evict = {
+            @CacheEvict(value = "dc-hot", cacheManager = "caffeineCacheManager", key = "#discussCommentDTO.discussId + ':1:10'"),
+            @CacheEvict(value = "dc-hot", cacheManager = "caffeineCacheManager", key = "#discussCommentDTO.discussId + ':2:10'")
+    })
     @Override
     public void create(DiscussCommentDTO discussCommentDTO) {
         // 验证讨论是否存在
@@ -95,10 +112,15 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
         baseMapper.insert(discussComment);
         // 初始化热度
         Long commentId = discussComment.getCommentId();
-        int hot = discussCommentHotStatistics.updateIncrement(discussId, commentId, DiscussCommentHotStatistics.INIT_HOT);
-        log.info("discussId:" + discussId + ",commentId:" + commentId + ",设置初始热度为" + hot);
+        int hot = discussCommentHotStatistics.updateIncrement(discussId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_INIT.getDelta());
+        log.info("discussId:{},commentId:{},设置初始热度为{}", discussId, commentId, hot);
+        int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_INIT.getDelta());
+        log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+        int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_INIT.getDelta());
+        log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
     }
 
+    @Cacheable(value = "dc-hot", cacheManager = "caffeineCacheManager", key = "#discussId + ':' + #page + ':' + #size")
     @Override
     public PageInfo<DiscussCommentBO> list(Long discussId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
@@ -111,11 +133,16 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
             BeanUtils.copyProperties(discussComment, discussCommentBO);
             // 获取高热度评论
             Long mainId = discussComment.getCommentId();
-            List<Long> childIds = discussCommentChildHotStatistics.selectPage(mainId, 1, 2)
-                    .stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
+            List<AbstractCumulativeOperateStatistics.CumulativeValue> cumulativeValues = discussCommentChildHotStatistics.selectPage(mainId, 1, 2);
             LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
-            // todo:控制字段
-            queryWrapper.in(DiscussCommentChild::getCommentId, childIds);
+            // todo:控制查询字段
+            if (CollectionUtils.isEmpty(cumulativeValues)) {
+                queryWrapper.eq(DiscussCommentChild::getParentId, mainId);
+            } else {
+                List<Long> childIds = cumulativeValues.stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
+                queryWrapper.in(DiscussCommentChild::getCommentId, childIds);
+            }
+            PageHelper.startPage(1, 2);
             List<DiscussCommentChild> discussCommentChildren = discussCommentChildMapper.selectList(queryWrapper);
             // 转换为bo
             List<DiscussCommentChildBO> commentChildBOS = discussCommentChildren.stream().map(discussCommentChild -> {
@@ -143,37 +170,51 @@ public class DiscussCommentServiceImpl extends ServiceImpl<DiscussCommentMapper,
     }
 
     @Override
-    public boolean like(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        // todo:将TypeNumber封装并返回
-        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
-            DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
-            Long topicId = discussComment.getTopicId();
-            messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.LIKE);
+        return typeNumber;
     }
 
     @Override
-    public boolean dislike(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        // todo:将TypeNumber封装并返回
-        discussCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
-            DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId).eq(DiscussComment::getCommentId, commentId));
-            Long topicId = discussComment.getTopicId();
-            messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT);
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.DISLIKE);
+        return typeNumber;
+    }
+
+    @Async
+    public void createMessageNotification(Long uid, String nickname, Long commentId, MessageNotificationActionEnum action) {
+        // 查询话题id
+        LambdaQueryWrapper<DiscussComment> queryWrapper = new QueryWrapper<DiscussComment>().lambda();
+        DiscussComment discussComment = baseMapper.selectOne(queryWrapper.select(DiscussComment::getTopicId, DiscussComment::getDiscussId).eq(DiscussComment::getCommentId, commentId));
+        Long topicId = discussComment.getTopicId();
+        Long discussId = discussComment.getDiscussId();
+        if (!messageNotificationProducer.exists(uid, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT, action)) {
+            messageNotificationProducer.create(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT, action);
+            // 增加热度
+            if (action == MessageNotificationActionEnum.LIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_LIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_LIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+                int increment2 = discussCommentHotStatistics.updateIncrement(discussId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_LIKE.getDelta());
+                log.info("热度增加，commentId：{},当前热度：{}", commentId, increment2);
+            } else if (action == MessageNotificationActionEnum.DISLIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_DISLIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_DISLIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+                int increment2 = discussCommentHotStatistics.updateIncrement(discussId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_DISLIKE.getDelta());
+                log.info("热度增加，commentId：{},当前热度：{}", commentId, increment2);
+            }
         }
-        return true;
     }
 
     @Override

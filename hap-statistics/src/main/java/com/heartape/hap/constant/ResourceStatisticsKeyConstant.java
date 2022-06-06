@@ -3,7 +3,7 @@ package com.heartape.hap.constant;
 /**
  * 定义记录资源操作的redis key
  */
-public class ResourceRedisKeyConstant {
+public class ResourceStatisticsKeyConstant {
 
     /** sponsorId:发起方id，即进行操作的一方，如点赞时的uid，收藏时的文件夹id */
     public final static String POSITIVE = "po:";

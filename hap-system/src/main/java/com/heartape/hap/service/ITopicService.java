@@ -38,6 +38,11 @@ public interface ITopicService extends IService<Topic> {
     TopicBO detail(Long topicId);
 
     /**
+     * 热度变化
+     */
+    void heatChange(Long topicId, Integer delta);
+
+    /**
      * 删除
      */
     void remove(Long topicId);

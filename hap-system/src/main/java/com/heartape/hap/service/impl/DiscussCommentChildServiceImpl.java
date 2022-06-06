@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
+import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.DiscussComment;
@@ -19,13 +21,15 @@ import com.heartape.hap.mapper.DiscussCommentMapper;
 import com.heartape.hap.mq.producer.IMessageNotificationProducer;
 import com.heartape.hap.service.IDiscussCommentChildService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
-import com.heartape.hap.statistics.DiscussCommentChildHotStatistics;
-import com.heartape.hap.statistics.DiscussCommentChildLikeStatistics;
+import com.heartape.hap.statistics.*;
 import com.heartape.hap.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,11 +60,24 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
     private DiscussCommentChildLikeStatistics discussCommentChildLikeStatistics;
 
     @Autowired
+    private TopicHotStatistics topicHotStatistics;
+
+    @Autowired
+    private DiscussHotStatistics discussHotStatistics;
+
+    @Autowired
+    private DiscussCommentHotStatistics discussCommentHotStatistics;
+
+    @Autowired
     private DiscussCommentChildHotStatistics discussCommentChildHotStatistics;
 
     @Autowired
     private IMessageNotificationProducer messageNotificationProducer;
 
+    @Caching(evict = {
+            @CacheEvict(value = "dcc-hot", cacheManager = "caffeineCacheManager", key = "#discussCommentChildDTO.parentId + ':1:10'"),
+            @CacheEvict(value = "dcc-hot", cacheManager = "caffeineCacheManager", key = "#discussCommentChildDTO.parentId + ':2:10'")
+    })
     @Override
     public void create(DiscussCommentChildDTO discussCommentChildDTO) {
         // 验证父评论是否存在
@@ -87,8 +104,14 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         baseMapper.insert(discussCommentChild);
         // 初始化热度
         Long commentId = discussCommentChild.getCommentId();
-        int hot = discussCommentChildHotStatistics.updateIncrement(parentId, commentId, DiscussCommentChildHotStatistics.INIT_HOT);
-        log.info("parentId:" + parentId + ",commentId:" + commentId + ",设置初始热度为" + hot);
+        int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_INIT.getDelta());
+        log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+        int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_INIT.getDelta());
+        log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+        int increment2 = discussCommentHotStatistics.updateIncrement(discussId, parentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_INIT.getDelta());
+        log.info("热度增加，parentId：{},当前热度：{}", commentId, increment2);
+        int hot = discussCommentChildHotStatistics.updateIncrement(parentId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_INIT.getDelta());
+        log.info("parentId:{},commentId:{},设置初始热度为:{}", parentId, commentId, hot);
     }
 
     @Override
@@ -121,6 +144,7 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
         baseMapper.insert(discussCommentChild);
     }
 
+    @Cacheable(value = "dcc-hot", cacheManager = "caffeineCacheManager", key = "#commentId + ':' + #page + ':' + #size")
     @Override
     public PageInfo<DiscussCommentChildBO> list(Long commentId, Integer page, Integer size) {
         LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
@@ -146,35 +170,56 @@ public class DiscussCommentChildServiceImpl extends ServiceImpl<DiscussCommentCh
     }
 
     @Override
-    public boolean like(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
-            DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
-            Long topicId = discussCommentChild.getTopicId();
-            messageNotificationProducer.likeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentChildLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.LIKE);
+        return typeNumber;
     }
 
     @Override
-    public boolean dislike(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussCommentChildLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
-            DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId).eq(DiscussCommentChild::getCommentId, commentId));
-            Long topicId = discussCommentChild.getTopicId();
-            messageNotificationProducer.dislikeCreate(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD);
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussCommentChildLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.DISLIKE);
+        return typeNumber;
+    }
+
+    @Async
+    public void createMessageNotification(Long uid, String nickname, Long commentId, MessageNotificationActionEnum action) {
+        // 查询文章id
+        LambdaQueryWrapper<DiscussCommentChild> queryWrapper = new QueryWrapper<DiscussCommentChild>().lambda();
+        DiscussCommentChild discussCommentChild = baseMapper.selectOne(queryWrapper.select(DiscussCommentChild::getTopicId, DiscussCommentChild::getDiscussId, DiscussCommentChild::getParentId).eq(DiscussCommentChild::getCommentId, commentId));
+        Long topicId = discussCommentChild.getTopicId();
+        Long discussId = discussCommentChild.getDiscussId();
+        Long parentId = discussCommentChild.getParentId();
+        if (messageNotificationProducer.exists(uid, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD, action)) {
+            messageNotificationProducer.create(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, commentId, MessageNotificationTargetTypeEnum.DISCUSS_COMMENT_CHILD, action);
+            // 增加热度
+            if (action == MessageNotificationActionEnum.LIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_LIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_LIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+                int increment2 = discussCommentHotStatistics.updateIncrement(discussId, parentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_LIKE.getDelta());
+                log.info("热度增加，parentId：{},当前热度：{}", commentId, increment2);
+                int increment3 = discussCommentHotStatistics.updateIncrement(parentId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_LIKE.getDelta());
+                log.info("热度增加，commentId：{},当前热度：{}", commentId, increment3);
+            } else if (action == MessageNotificationActionEnum.DISLIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_DISLIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_DISLIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+                int increment2 = discussCommentHotStatistics.updateIncrement(discussId, parentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_DISLIKE.getDelta());
+                log.info("热度增加，parentId：{},当前热度：{}", commentId, increment2);
+                int increment3 = discussCommentHotStatistics.updateIncrement(parentId, commentId, HeatDeltaEnum.DISCUSS_COMMENT_CHILD_DISLIKE.getDelta());
+                log.info("热度增加，commentId：{},当前热度：{}", commentId, increment3);
+            }
         }
-        return true;
     }
 
     @Override

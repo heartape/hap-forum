@@ -32,7 +32,6 @@ public class PrivateLetterServiceImpl extends ServiceImpl<PrivateLetterMapper, P
     @Override
     public void create(PrivateLetterDTO privateLetterDTO) {
         // todo:验证用户之间有没有拉黑
-
         String content = privateLetterDTO.getContent();
         String simpleContent = content.length() > 16 ? content.substring(0,16) : content;
 

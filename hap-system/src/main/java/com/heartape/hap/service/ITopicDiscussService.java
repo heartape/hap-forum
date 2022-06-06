@@ -5,6 +5,7 @@ import com.heartape.hap.entity.TopicDiscuss;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.entity.bo.TopicDiscussBO;
 import com.heartape.hap.entity.dto.TopicDiscussDTO;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 
 /**
  * <p>
@@ -23,12 +24,12 @@ public interface ITopicDiscussService extends IService<TopicDiscuss> {
     /**
      * 点赞
      */
-    boolean like(Long discussId);
+    AbstractTypeOperateStatistics.TypeNumber like(Long discussId);
 
     /**
      * 点踩
      */
-    boolean dislike(Long discussId);
+    AbstractTypeOperateStatistics.TypeNumber dislike(Long discussId);
 
     void remove(Long discussId);
 }

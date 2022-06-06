@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.constant.HeatDeltaEnum;
+import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.bo.TopicDiscussBO;
@@ -23,6 +24,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import com.heartape.hap.statistics.DiscussHotStatistics;
 import com.heartape.hap.statistics.DiscussLikeStatistics;
+import com.heartape.hap.statistics.TopicHotStatistics;
 import com.heartape.hap.utils.AssertUtils;
 import com.heartape.hap.utils.StringTransformUtils;
 import com.heartape.hap.entity.DiscussComment;
@@ -34,6 +36,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -76,8 +81,15 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     private DiscussLikeStatistics discussLikeStatistics;
 
     @Autowired
+    private TopicHotStatistics topicHotStatistics;
+
+    @Autowired
     private DiscussHotStatistics discussHotStatistics;
 
+    @Caching(evict = {
+            @CacheEvict(value = "di-hot", cacheManager = "caffeineCacheManager", key = "#topicDiscussDTO.topicId + ':1:10'"),
+            @CacheEvict(value = "di-hot", cacheManager = "caffeineCacheManager", key = "#topicDiscussDTO.topicId + ':2:10'")
+    })
     @Override
     public void create(TopicDiscussDTO topicDiscussDTO) {
         // 验证话题是否存在
@@ -110,9 +122,12 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
         // 热度
         Long discussId = topicDiscuss.getDiscussId();
         int hot = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_INIT.getDelta());
-        log.info("topicId:" + topicId + ",discussId:" + discussId + ",设置初始热度为" + hot);
+        log.info("topicId:{},discussId:{},设置初始热度为:{}", topicId, discussId, hot);
+        int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_INIT.getDelta());
+        log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
     }
 
+    @Cacheable(value = "di-hot", cacheManager = "caffeineCacheManager", key = "#topicId + ':' + #page + ':' + #size")
     @Override
     public PageInfo<TopicDiscussBO> list(Long topicId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
@@ -136,35 +151,45 @@ public class TopicDiscussServiceImpl extends ServiceImpl<TopicDiscussMapper, Top
     }
 
     @Override
-    public boolean like(Long discussId) {
+    public AbstractTypeOperateStatistics.TypeNumber like(Long discussId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussLikeStatistics.insert(discussId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
-        if (true) {
-            // 查询话题id
-            LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
-            TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
-            Long topicId = topicDiscuss.getTopicId();
-            messageNotificationProducer.likeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussLikeStatistics.insert(uid, discussId, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
+        createMessageNotification(uid, nickname, discussId, MessageNotificationActionEnum.LIKE);
+        return typeNumber;
     }
 
     @Override
-    public boolean dislike(Long discussId) {
+    public AbstractTypeOperateStatistics.TypeNumber dislike(Long discussId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        discussLikeStatistics.insert(discussId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
-        if (true) {
-            // 查询话题id
-            LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
-            TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
-            Long topicId = topicDiscuss.getTopicId();
-            messageNotificationProducer.dislikeCreate(uid, nickname, discussId, MessageNotificationMainTypeEnum.TOPIC, topicId, MessageNotificationTargetTypeEnum.DISCUSS);
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = discussLikeStatistics.insert(uid, discussId, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
+        createMessageNotification(uid, nickname, discussId, MessageNotificationActionEnum.DISLIKE);
+        return typeNumber;
+    }
+
+    public void createMessageNotification(Long uid, String nickname, Long discussId, MessageNotificationActionEnum action) {
+        // 查询话题id
+        LambdaQueryWrapper<TopicDiscuss> queryWrapper = new QueryWrapper<TopicDiscuss>().lambda();
+        TopicDiscuss topicDiscuss = baseMapper.selectOne(queryWrapper.select(TopicDiscuss::getTopicId).eq(TopicDiscuss::getDiscussId, discussId));
+        Long topicId = topicDiscuss.getTopicId();
+        if (!messageNotificationProducer.exists(uid, topicId, MessageNotificationMainTypeEnum.ARTICLE, discussId, MessageNotificationTargetTypeEnum.ARTICLE, action)) {
+            messageNotificationProducer.create(uid, nickname, topicId, MessageNotificationMainTypeEnum.TOPIC, discussId, MessageNotificationTargetTypeEnum.DISCUSS, action);
+            // 增加热度
+            if (action == MessageNotificationActionEnum.LIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_LIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_LIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+            } else if (action == MessageNotificationActionEnum.DISLIKE) {
+                int increment = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.DISCUSS_DISLIKE.getDelta());
+                log.info("热度增加，topicId：{},当前热度：{}", topicId, increment);
+                int increment1 = discussHotStatistics.updateIncrement(topicId, discussId, HeatDeltaEnum.DISCUSS_DISLIKE.getDelta());
+                log.info("热度增加，discussId：{},当前热度：{}", discussId, increment1);
+            }
         }
-        return true;
     }
 
     @Override

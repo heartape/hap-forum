@@ -5,6 +5,7 @@ import com.heartape.hap.entity.DiscussCommentChild;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.entity.bo.DiscussCommentChildBO;
 import com.heartape.hap.entity.dto.DiscussCommentChildDTO;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 
 /**
  * <p>
@@ -25,12 +26,12 @@ public interface IDiscussCommentChildService extends IService<DiscussCommentChil
     /**
      * 点赞
      */
-    boolean like(Long commentId);
+    AbstractTypeOperateStatistics.TypeNumber like(Long commentId);
 
     /**
      * 点踩
      */
-    boolean dislike(Long commentId);
+    AbstractTypeOperateStatistics.TypeNumber dislike(Long commentId);
 
     void remove(Long commentId);
 

@@ -1,6 +1,6 @@
 package com.heartape.hap.statistics;
 
-import com.heartape.hap.constant.ResourceRedisKeyConstant;
+import com.heartape.hap.constant.ResourceStatisticsKeyConstant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -8,16 +8,16 @@ public class DiscussCommentChildLikeStatistics extends AbstractTypeOperateStatis
 
     @Override
     public String positiveKey(long sourceId) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceRedisKeyConstant.POSITIVE + sourceId;
+        return ResourceStatisticsKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceStatisticsKeyConstant.POSITIVE + sourceId;
     }
 
     @Override
     public String negativeKey(long sourceId) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceRedisKeyConstant.NEGATIVE + sourceId;
+        return ResourceStatisticsKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceStatisticsKeyConstant.NEGATIVE + sourceId;
     }
 
     @Override
     public String sponsorKey(long sponsorId) {
-        return ResourceRedisKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceRedisKeyConstant.SPONSOR + sponsorId;
+        return ResourceStatisticsKeyConstant.LIKE_DISCUSS_COMMENT_CHILD + ResourceStatisticsKeyConstant.SPONSOR + sponsorId;
     }
 }

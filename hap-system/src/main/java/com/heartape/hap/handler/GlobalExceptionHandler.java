@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -29,7 +30,6 @@ public class GlobalExceptionHandler {
     public ErrorResult handleConstraintViolationException(ConstraintViolationException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
-        e.printStackTrace();
         return ErrorResult.error(ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -41,7 +41,6 @@ public class GlobalExceptionHandler {
     public ErrorResult handleHttpMessageNotReadableException(HttpMessageNotReadableException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
-        e.printStackTrace();
         return ErrorResult.error(ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -53,7 +52,6 @@ public class GlobalExceptionHandler {
     public ErrorResult handleBindException(BindException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
-        e.printStackTrace();
         return ErrorResult.error(ResultCode.PARAM_IS_INVALID, path);
     }
 
@@ -65,8 +63,18 @@ public class GlobalExceptionHandler {
     public ErrorResult handleMethodArgumentNotValidException(MethodArgumentNotValidException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
-        e.printStackTrace();
         return ErrorResult.error(ResultCode.PARAM_IS_INVALID, path);
+    }
+
+    /**
+     * 没有参数
+     */
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResult MissingServletRequestParameterExceptionException(MissingServletRequestParameterException e, HttpServletRequest request){
+        String path = request.getRequestURI();
+        log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
+        return ErrorResult.error(ResultCode.PARAM_IS_BLANK, path);
     }
 
     /**
@@ -76,7 +84,6 @@ public class GlobalExceptionHandler {
     public ErrorResult handleBusinessException(BusinessException e, HttpServletRequest request){
         String path = request.getRequestURI();
         log.info("\nexception:{},\npath:{}\ncaused by:{}",e.getClass(),path,e.getMessage());
-        e.printStackTrace();
         return ErrorResult.error(e.getExceptionEnum(),path);
     }
 

@@ -15,6 +15,6 @@ public class CreatorServiceImpl extends ServiceImpl<CreatorMapper, Creator> impl
         LambdaQueryWrapper<Creator> queryWrapper = new QueryWrapper<Creator>().lambda();
         queryWrapper.select(Creator::getNickname).eq(Creator::getUid, uid);
         Creator creator = baseMapper.selectOne(queryWrapper);
-        return creator.getNickname();
+        return creator == null ? null : creator.getNickname();
     }
 }

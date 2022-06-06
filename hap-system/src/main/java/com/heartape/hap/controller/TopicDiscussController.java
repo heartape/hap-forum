@@ -6,6 +6,7 @@ import com.heartape.hap.entity.dto.TopicDiscussDTO;
 import com.heartape.hap.entity.ro.TopicDiscussRO;
 import com.heartape.hap.response.Result;
 import com.heartape.hap.service.ITopicDiscussService;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
@@ -47,14 +48,14 @@ public class TopicDiscussController {
     @PutMapping("/like")
     @ApiOperation("点赞讨论")
     public Result like(@RequestParam Long discussId) {
-        boolean like = topicDiscussService.like(discussId);
+        AbstractTypeOperateStatistics.TypeNumber like = topicDiscussService.like(discussId);
         return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("点赞讨论")
     public Result dislike(@RequestParam Long discussId) {
-        boolean dislike = topicDiscussService.dislike(discussId);
+        AbstractTypeOperateStatistics.TypeNumber dislike = topicDiscussService.dislike(discussId);
         return Result.success(dislike);
     }
 

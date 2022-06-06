@@ -9,7 +9,7 @@ public class PhoneValidator implements ConstraintValidator<Phone, String> {
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
         int PHONE_LENGTH = 11;
-        if (s.length() != PHONE_LENGTH) {
+        if (s == null || s.length() != PHONE_LENGTH) {
             return false;
         }
         Pattern pattern = Pattern.compile("1[3|4|5|7|8][0-9]\\d{8}");

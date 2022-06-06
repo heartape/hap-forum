@@ -1,7 +1,9 @@
 package com.heartape.hap.controller;
 
-import com.heartape.hap.entity.dto.CreatorDTO;
-import com.heartape.hap.entity.ro.CreatorRO;
+import com.heartape.hap.entity.dto.CreatorPhoneDTO;
+import com.heartape.hap.entity.dto.CreatorEmailDTO;
+import com.heartape.hap.entity.ro.CreatorEmailRO;
+import com.heartape.hap.entity.ro.CreatorPhoneRO;
 import com.heartape.hap.response.Result;
 import com.heartape.hap.service.IRegisterService;
 import io.swagger.annotations.Api;
@@ -24,26 +26,35 @@ public class RegisterController {
     @Autowired
     private IRegisterService registerService;
 
-    @GetMapping("/check/email")
+    @GetMapping("/email")
     @ApiOperation("获取注册邮箱验证码")
-    public Result checkEmail(@Length(min = 8) @RequestParam String email) {
+    public Result checkEmail(@Length(min = 6, max = 32) @RequestParam String email) {
         registerService.checkEmail(email);
         return Result.success();
     }
 
-    @GetMapping("/check/phone")
+    @GetMapping("/phone")
     @ApiOperation("获取注册短信验证码")
     public Result checkPhone(@NotEmpty @RequestParam String mobile) {
         registerService.checkPhone(mobile);
         return Result.success();
     }
 
-    @PostMapping("/creator")
-    @ApiOperation("创作者自注册")
-    public Result register(@Valid @RequestBody CreatorRO creatorRO) {
-        CreatorDTO creatorDTO = new CreatorDTO();
-        BeanUtils.copyProperties(creatorRO, creatorDTO);
-        registerService.register(creatorDTO);
+    @PostMapping("/email")
+    @ApiOperation("邮箱注册")
+    public Result registerEmail(@Valid @RequestBody CreatorEmailRO creatorEmailRO) {
+        CreatorEmailDTO creatorDTO = new CreatorEmailDTO();
+        BeanUtils.copyProperties(creatorEmailRO, creatorDTO);
+        registerService.registerEmail(creatorDTO);
+        return Result.success();
+    }
+
+    @PostMapping("/phone")
+    @ApiOperation("手机注册")
+    public Result registerPhone(@Valid @RequestBody CreatorPhoneRO creatorPhoneRO) {
+        CreatorPhoneDTO creatorPhoneDTO = new CreatorPhoneDTO();
+        BeanUtils.copyProperties(creatorPhoneRO, creatorPhoneDTO);
+        registerService.registerPhone(creatorPhoneDTO);
         return Result.success();
     }
 }

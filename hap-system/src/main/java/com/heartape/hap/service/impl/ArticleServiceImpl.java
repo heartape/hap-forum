@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.constant.HeatDeltaEnum;
+import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.Article;
@@ -34,6 +35,9 @@ import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -87,7 +91,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         assertUtils.businessState(length > 100, new ParamIsInvalidException(message));
         String simpleContent = ignoreBlank.substring(0, 100);
         article.setSimpleContent(simpleContent);
-
+        // 创建文章
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String avatar = tokenInfo.getAvatar();
@@ -101,9 +105,10 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         // 初始化热度
         Long articleId = article.getArticleId();
         int hot = articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_INIT.getDelta());
-        log.info("articleId:" + articleId + "设置初始热度为" + hot);
+        log.info("articleId:{},设置初始热度为:{}", articleId, hot);
     }
 
+    @Cacheable(value = "ar-hot", cacheManager = "caffeineCacheManager", key = "#page + ':' + #size")
     @Override
     public PageInfo<ArticleSimpleBO> list(Integer page, Integer size) {
         LambdaQueryWrapper<Article> queryWrapper = new QueryWrapper<Article>().lambda();
@@ -129,6 +134,7 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         return copyPageInfo;
     }
 
+    @Cacheable(value = "ar-detail", cacheManager = "caffeineCacheManager", key = "#articleId")
     @Override
     public ArticleBO detail(Long articleId) {
         Article article = this.baseMapper.selectOneLabel(articleId);
@@ -145,42 +151,57 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
         int dislikeNumber = articleLikeStatistics.selectNegativeNumber(articleId);
         articleBO.setLike(likeNumber);
         articleBO.setDislike(dislikeNumber);
-        int delta = HeatDeltaEnum.ARTICLE_SELECT.getDelta();
-        int i = articleHotStatistics.updateIncrement(articleId, delta);
-        log.info("文章查询热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
         return articleBO;
     }
 
+    @Async
     @Override
-    public boolean like(Long articleId) {
+    public void heatChange(Long articleId, Integer delta) {
+        int i = articleHotStatistics.updateIncrement(articleId, delta);
+        // todo:测试时使用
+        log.info("文章查询热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
+    }
+
+    @CacheEvict(value = "ar-detail", cacheManager = "caffeineCacheManager", key = "#articleId")
+    @Override
+    public  AbstractTypeOperateStatistics.TypeNumber like(Long articleId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleLikeStatistics.insert(articleId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
-        if (true) {
-            messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
-            int delta = HeatDeltaEnum.ARTICLE_LIKE.getDelta();
-            int i = articleHotStatistics.updateIncrement(articleId, delta);
-            log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber insert = articleLikeStatistics.insert(uid, articleId, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
+        createMessageNotification(uid, nickname, articleId, MessageNotificationActionEnum.LIKE);
+        return insert;
     }
 
+    @CacheEvict(value = "ar-detail", cacheManager = "caffeineCacheManager", key = "#articleId")
     @Override
-    public boolean dislike(Long articleId) {
+    public  AbstractTypeOperateStatistics.TypeNumber dislike(Long articleId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleLikeStatistics.insert(articleId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
-        if (true) {
-            messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE);
-            int delta = HeatDeltaEnum.ARTICLE_DISLIKE.getDelta();
-            int i = articleHotStatistics.updateIncrement(articleId, delta);
-            log.info("文章点赞热度增加，articleId：" + articleId + ",增加值：" + delta + ",当前热度：" + i);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber typeNumber = articleLikeStatistics.insert(uid, articleId, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
+        createMessageNotification(uid, nickname, articleId, MessageNotificationActionEnum.DISLIKE);
+        return typeNumber;
     }
 
+    @Async
+    public void createMessageNotification(Long uid, String nickname, Long articleId, MessageNotificationActionEnum action) {
+        if (!messageNotificationProducer.exists(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE, action)) {
+            messageNotificationProducer.create(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, articleId, MessageNotificationTargetTypeEnum.ARTICLE, action);
+            // 增加热度
+            if (action == MessageNotificationActionEnum.LIKE) {
+                int i = articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_LIKE.getDelta());
+                // todo:测试完删除
+                log.info("文章点赞热度增加，articleId：{},当前热度：{}", articleId, i);
+            } else if (action == MessageNotificationActionEnum.DISLIKE) {
+                int i = articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_DISLIKE.getDelta());
+                // todo:测试完删除
+                log.info("文章点踩热度增加，articleId：{},当前热度：{}", articleId, i);
+            }
+        }
+    }
+
+    @CacheEvict(value = "ar-detail", cacheManager = "caffeineCacheManager", key = "#articleId")
     @Override
     public void remove(Long articleId) {
         long uid = tokenFeignService.getUid();

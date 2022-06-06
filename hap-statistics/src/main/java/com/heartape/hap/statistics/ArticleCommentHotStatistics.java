@@ -1,6 +1,6 @@
 package com.heartape.hap.statistics;
 
-import com.heartape.hap.constant.ResourceRedisKeyConstant;
+import com.heartape.hap.constant.ResourceStatisticsKeyConstant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -8,6 +8,6 @@ public class ArticleCommentHotStatistics extends AbstractCumulativeOperateStatis
 
     @Override
     public String getKey(long mainId) {
-        return ResourceRedisKeyConstant.HEAT_ARTICLE_COMMENT;
+        return ResourceStatisticsKeyConstant.HEAT_ARTICLE_COMMENT;
     }
 }

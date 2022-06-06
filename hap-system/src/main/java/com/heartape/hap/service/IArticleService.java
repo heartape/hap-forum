@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.entity.bo.ArticleSimpleBO;
 import com.heartape.hap.entity.bo.ArticleBO;
 import com.heartape.hap.entity.dto.ArticleDTO;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 
 /**
  * <p>
@@ -33,14 +34,19 @@ public interface IArticleService extends IService<Article> {
     ArticleBO detail(Long articleId);
 
     /**
+     * 文章热度变化
+     */
+    void heatChange(Long articleId, Integer delta);
+
+    /**
      * 点赞文章
      */
-    boolean like(Long articleId);
+    AbstractTypeOperateStatistics.TypeNumber like(Long articleId);
 
     /**
      * 踩文章
      */
-    boolean dislike(Long articleId);
+    AbstractTypeOperateStatistics.TypeNumber dislike(Long articleId);
 
     /**
      * 删除文章

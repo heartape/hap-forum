@@ -10,7 +10,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * 保存登录用户信息
+ * 保存登录用户信息,仅供gateway调用
  */
 @Data
 public class HapUserDetails {

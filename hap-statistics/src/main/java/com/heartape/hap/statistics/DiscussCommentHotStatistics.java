@@ -1,15 +1,13 @@
 package com.heartape.hap.statistics;
 
-import com.heartape.hap.constant.ResourceRedisKeyConstant;
+import com.heartape.hap.constant.ResourceStatisticsKeyConstant;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DiscussCommentHotStatistics extends AbstractCumulativeOperateStatistics {
 
-    public final static int INIT_HOT = 100;
-
     @Override
     public String getKey(long mainId) {
-        return ResourceRedisKeyConstant.HEAT_DISCUSS_COMMENT + mainId;
+        return ResourceStatisticsKeyConstant.HEAT_DISCUSS_COMMENT + mainId;
     }
 }

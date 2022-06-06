@@ -5,6 +5,7 @@ import com.heartape.hap.entity.ArticleCommentChild;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.heartape.hap.entity.bo.ArticleCommentChildBO;
 import com.heartape.hap.entity.dto.ArticleCommentChildDTO;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 
 /**
  * <p>
@@ -34,12 +35,12 @@ public interface IArticleCommentChildService extends IService<ArticleCommentChil
     /**
      * 点赞
      */
-    boolean like(Long commentId);
+    AbstractTypeOperateStatistics.TypeNumber like(Long commentId);
 
     /**
      * 点踩
      */
-    boolean dislike(Long commentId);
+    AbstractTypeOperateStatistics.TypeNumber dislike(Long commentId);
 
     /**
      * 删除子评论

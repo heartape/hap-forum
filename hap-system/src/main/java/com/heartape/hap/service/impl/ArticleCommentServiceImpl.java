@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.heartape.hap.constant.HeatDeltaEnum;
+import com.heartape.hap.constant.MessageNotificationActionEnum;
 import com.heartape.hap.constant.MessageNotificationMainTypeEnum;
 import com.heartape.hap.constant.MessageNotificationTargetTypeEnum;
 import com.heartape.hap.entity.Article;
@@ -28,7 +29,12 @@ import com.heartape.hap.utils.AssertUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,8 +76,18 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     private ArticleCommentChildLikeStatistics articleCommentChildLikeStatistics;
 
     @Autowired
+    private ArticleHotStatistics articleHotStatistics;
+
+    @Autowired
     private ArticleCommentHotStatistics articleCommentHotStatistics;
 
+    @Caching(evict = {
+            // allEntries表示删除value下的所有key
+            // @CacheEvict(value = "ac-hot", cacheManager = "caffeineCacheManager", allEntries = true),
+            // todo:不同的分页size如何全部清除
+            @CacheEvict(value = "ac-hot", cacheManager = "caffeineCacheManager", key = "#articleCommentDTO.articleId + ':1:*'"),
+            @CacheEvict(value = "ac-hot", cacheManager = "caffeineCacheManager", key = "#articleCommentDTO.articleId + ':2:*'")
+    })
     @Override
     public void create(ArticleCommentDTO articleCommentDTO) {
         Long articleId = articleCommentDTO.getArticleId();
@@ -93,10 +109,13 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
         this.baseMapper.insert(articleComment);
         Long commentId = articleComment.getCommentId();
         // 初始化热度
-        int hot = articleCommentHotStatistics.updateIncrement(articleId, commentId, HeatDeltaEnum.ARTICLE_INIT.getDelta());
-        log.info("articleId:" + articleId + ",commentId:" + commentId + ",设置初始热度为" + hot);
+        int i = articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_COMMENT_INIT.getDelta());
+        log.info("articleId:{},热度为:{}", articleId, i);
+        int hot = articleCommentHotStatistics.updateIncrement(articleId, commentId, HeatDeltaEnum.ARTICLE_COMMENT_INIT.getDelta());
+        log.info("articleId:{},commentId:{},设置初始热度为:{}", articleId, commentId, hot);
     }
 
+    @Cacheable(value = "ac-hot", cacheManager = "caffeineCacheManager", key = "#articleId + ':' + #page + ':' + #size")
     @Override
     public PageInfo<ArticleCommentBO> list(Long articleId, Integer page, Integer size) {
         PageHelper.startPage(page, size);
@@ -110,12 +129,18 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
             // 从热度统计中获取较高的子评论
             Long mainId = comment.getCommentId();
             List<AbstractCumulativeOperateStatistics.CumulativeValue> cumulativeValues = articleCommentChildHotStatistics.selectPage(mainId, 1, 2);
-            List<Long> commentIds = cumulativeValues.stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
             LambdaQueryWrapper<ArticleCommentChild> queryWrapper = new QueryWrapper<ArticleCommentChild>().lambda();
             queryWrapper.select(ArticleCommentChild::getCommentId,
                     ArticleCommentChild::getUid,ArticleCommentChild::getAvatar,ArticleCommentChild::getNickname, ArticleCommentChild::getChildToChild,
-                    ArticleCommentChild::getChildTarget,ArticleCommentChild::getChildTargetName,ArticleCommentChild::getContent,ArticleCommentChild::getCreatedTime)
-                    .in(ArticleCommentChild::getCommentId, commentIds);
+                    ArticleCommentChild::getChildTarget,ArticleCommentChild::getChildTargetName,ArticleCommentChild::getContent,ArticleCommentChild::getCreatedTime);
+            // 如果热度统计未记录，直接从数据库读取
+            if (CollectionUtils.isEmpty(cumulativeValues)) {
+                queryWrapper.eq(ArticleCommentChild::getParentId, mainId);
+            } else {
+                List<Long> commentIds = cumulativeValues.stream().map(AbstractCumulativeOperateStatistics.CumulativeValue::getResourceId).collect(Collectors.toList());
+                queryWrapper.in(ArticleCommentChild::getCommentId, commentIds);
+            }
+            PageHelper.startPage(1, 2);
             List<ArticleCommentChild> commentChildren = articleCommentChildMapper.selectList(queryWrapper);
             // ArticleCommentChild转化为ArticleCommentChildBO
             List<ArticleCommentChildBO> childBOList = commentChildren.stream().map(child -> {
@@ -142,37 +167,43 @@ public class ArticleCommentServiceImpl extends ServiceImpl<ArticleCommentMapper,
     }
 
     @Override
-    public boolean like(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber like(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
-            ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
-            Long articleId = articleComment.getArticleId();
-            // 创建消息通知
-            messageNotificationProducer.likeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
-        }
-        return true;
+        AbstractTypeOperateStatistics.TypeNumber insert = articleCommentLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.POSITIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.LIKE);
+        return insert;
     }
 
     @Override
-    public boolean dislike(Long commentId) {
+    public AbstractTypeOperateStatistics.TypeNumber dislike(Long commentId) {
         HapUserDetails tokenInfo = tokenFeignService.getTokenInfo();
         Long uid = tokenInfo.getUid();
         String nickname = tokenInfo.getNickname();
-        articleCommentLikeStatistics.insert(commentId, uid, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
-        if (true) {
-            // 查询文章id
-            LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
-            ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
-            Long articleId = articleComment.getArticleId();
+        AbstractTypeOperateStatistics.TypeNumber insert = articleCommentLikeStatistics.insert(uid, commentId, AbstractTypeOperateStatistics.TypeEnum.NEGATIVE);
+        createMessageNotification(uid, nickname, commentId, MessageNotificationActionEnum.DISLIKE);
+        return insert;
+    }
+
+    @Async
+    public void createMessageNotification(Long uid, String nickname, Long commentId, MessageNotificationActionEnum action) {
+        // 查询文章id
+        LambdaQueryWrapper<ArticleComment> queryWrapper = new QueryWrapper<ArticleComment>().lambda();
+        ArticleComment articleComment = baseMapper.selectOne(queryWrapper.select(ArticleComment::getArticleId).eq(ArticleComment::getCommentId, commentId));
+        Long articleId = articleComment.getArticleId();
+        if (!messageNotificationProducer.exists(uid, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT, action)) {
             // 创建消息通知
-            messageNotificationProducer.dislikeCreate(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT);
+            messageNotificationProducer.create(uid, nickname, articleId, MessageNotificationMainTypeEnum.ARTICLE, commentId, MessageNotificationTargetTypeEnum.ARTICLE_COMMENT, action);
+            // 增加热度
+            if (action == MessageNotificationActionEnum.LIKE) {
+                articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_COMMENT_LIKE.getDelta());
+                articleCommentHotStatistics.updateIncrement(articleId, commentId, HeatDeltaEnum.ARTICLE_COMMENT_LIKE.getDelta());
+            } else if (action == MessageNotificationActionEnum.DISLIKE) {
+                articleHotStatistics.updateIncrement(articleId, HeatDeltaEnum.ARTICLE_COMMENT_LIKE.getDelta());
+                articleCommentHotStatistics.updateIncrement(articleId, commentId, HeatDeltaEnum.ARTICLE_COMMENT_DISLIKE.getDelta());
+            }
         }
-        return true;
     }
 
     @Override

@@ -71,18 +71,20 @@ public class SecurityConfig {
         PathPatternParserServerWebExchangeMatcher loginMatcher = new PathPatternParserServerWebExchangeMatcher("/login");
         PathPatternParserServerWebExchangeMatcher loginsMatcher = new PathPatternParserServerWebExchangeMatcher("/login/**");
         PathPatternParserServerWebExchangeMatcher oauthMatcher = new PathPatternParserServerWebExchangeMatcher("/api/oauth/**");
+        PathPatternParserServerWebExchangeMatcher apiLoginMatcher = new PathPatternParserServerWebExchangeMatcher("/api/login/**");
         PathPatternParserServerWebExchangeMatcher registerMatcher = new PathPatternParserServerWebExchangeMatcher("/api/register/**");
         List<ServerWebExchangeMatcher> matchers = new ArrayList<>();
         matchers.add(loginMatcher);
         matchers.add(loginsMatcher);
         matchers.add(oauthMatcher);
+        matchers.add(apiLoginMatcher);
         matchers.add(registerMatcher);
         return http
                 .securityMatcher(new OrServerWebExchangeMatcher(matchers))
                 .authorizeExchange()
-                .pathMatchers("/login", "/login/mail", "/login/phone", "/api/oauth/check", "/api/register/**")
+                .pathMatchers("/login", "/login/**", "/api/login/**", "/api/register/**")
                 .permitAll()
-                .pathMatchers("/api/oauth/token","/api/oauth/uid")
+                .pathMatchers("/api/oauth/**")
                 .denyAll()
                 .and()
                 .csrf().disable()

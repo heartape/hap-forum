@@ -6,6 +6,7 @@ import com.heartape.hap.entity.dto.DiscussCommentChildDTO;
 import com.heartape.hap.entity.ro.DiscussCommentChildRO;
 import com.heartape.hap.response.Result;
 import com.heartape.hap.service.IDiscussCommentChildService;
+import com.heartape.hap.statistics.AbstractTypeOperateStatistics;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.BeanUtils;
@@ -56,14 +57,14 @@ public class DiscussCommentChildController {
     @PutMapping("/like")
     @ApiOperation("点赞评论")
     public Result like(@RequestParam Long commentId) {
-        boolean like = discussCommentChildService.like(commentId);
+        AbstractTypeOperateStatistics.TypeNumber like = discussCommentChildService.like(commentId);
         return Result.success(like);
     }
 
     @PutMapping("/dislike")
     @ApiOperation("点赞评论")
     public Result dislike(@RequestParam Long commentId) {
-        boolean dislike = discussCommentChildService.dislike(commentId);
+        AbstractTypeOperateStatistics.TypeNumber dislike = discussCommentChildService.dislike(commentId);
         return Result.success(dislike);
     }
 

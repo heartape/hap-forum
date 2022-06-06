@@ -30,6 +30,8 @@ import com.heartape.hap.utils.StringTransformUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -93,9 +95,12 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
 
         Long topicId = topic.getTopicId();
         int hot = topicHotStatistics.updateIncrement(topicId, HeatDeltaEnum.TOPIC_INIT.getDelta());
-        log.info("topicId:" + topicId + "设置初始热度为" + hot);
+        log.info("topicId:{},设置初始热度为:{}", topicId, hot);
     }
 
+    /**
+     * todo:重写
+     */
     @Override
     public int follow(Long topicId) {
         LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
@@ -109,6 +114,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         return topicFollowStatistics.insert(topicId, uid);
     }
 
+    @Cacheable(value = "to-hot", cacheManager = "caffeineCacheManager", key = "#page + ':' + #size")
     @Override
     public PageInfo<TopicSimpleBO> list(Integer page, Integer size) {
         LambdaQueryWrapper<Topic> queryWrapper = new QueryWrapper<Topic>().lambda();
@@ -131,6 +137,7 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         return topicBOPageInfo;
     }
 
+    @Cacheable(value = "to-detail", cacheManager = "caffeineCacheManager", key = "#topicId")
     @Override
     public TopicBO detail(Long topicId) {
         Topic topic = baseMapper.selectOneLabel(topicId);
@@ -143,12 +150,16 @@ public class TopicServiceImpl extends ServiceImpl<TopicMapper, Topic> implements
         TopicBO topicBO = new TopicBO();
         BeanUtils.copyProperties(topic, topicBO);
         topicBO.setLabel(labelBOList);
-        int delta = HeatDeltaEnum.TOPIC_SELECT.getDelta();
-        int i = topicHotStatistics.updateIncrement(topicId, delta);
-        log.info("话题查询热度增加，topicId：" + topicId + ",增加值：" + delta + ",当前热度：" + i);
         return topicBO;
     }
 
+    @Override
+    public void heatChange(Long topicId, Integer delta) {
+        int i = topicHotStatistics.updateIncrement(topicId, delta);
+        log.info("话题查询热度增加，topicId：{},增加值：{},当前热度：{}", topicId, delta, i);
+    }
+
+    @CacheEvict(value = "to-detail", cacheManager = "caffeineCacheManager", key = "#topicId")
     @Override
     public void remove(Long topicId) {
         long uid = tokenFeignService.getUid();

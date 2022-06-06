@@ -1,6 +1,6 @@
 package com.heartape.hap.statistics;
 
-import com.heartape.hap.constant.ResourceRedisKeyConstant;
+import com.heartape.hap.constant.ResourceStatisticsKeyConstant;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,7 +13,7 @@ public class LabelBrowseStatistics extends AbstractCumulativeOperateStatistics {
 
     @Override
     public String getKey(long masterId) {
-        return ResourceRedisKeyConstant.BROWSE_LABEL + masterId;
+        return ResourceStatisticsKeyConstant.BROWSE_LABEL + masterId;
     }
 
     /**

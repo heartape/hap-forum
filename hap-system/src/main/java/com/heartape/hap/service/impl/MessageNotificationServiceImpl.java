@@ -75,37 +75,18 @@ public class MessageNotificationServiceImpl extends ServiceImpl<MessageNotificat
      * 创建点赞消息通知
      */
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_QUEUE,
+            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_QUEUE,
                     arguments = @Argument(
                             name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
                             value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
                             type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
-            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_EXCHANGE,
-                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_EXCHANGE_TYPE),
-            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_CREATE_ROUTING_KEY))
-    public void likeMessageCreate(MessageNotificationCreateDTO messageNotificationCreateDTO, Channel channel, Message message) {
+            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_EXCHANGE,
+                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_EXCHANGE_TYPE),
+            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_CREATE_ROUTING_KEY))
+    public void messageCreate(MessageNotificationCreateDTO messageNotificationCreateDTO, Channel channel, Message message) {
         List<MessageNotificationSendDTO> messageNotificationSendDTOS = messageCreate(messageNotificationCreateDTO);
         for (MessageNotificationSendDTO messageNotificationSendDTO : messageNotificationSendDTOS) {
-            messageNotificationProducer.likeSend(messageNotificationSendDTO);
-        }
-    }
-
-    /**
-     * 创建踩消息通知
-     */
-    @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_QUEUE,
-                    arguments = @Argument(
-                            name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
-                            value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
-                            type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
-            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_EXCHANGE,
-                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_EXCHANGE_TYPE),
-            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_CREATE_ROUTING_KEY))
-    public void dislikeMessageCreate(MessageNotificationCreateDTO messageNotificationCreateDTO, Channel channel, Message message) {
-        List<MessageNotificationSendDTO> messageNotificationSendDTOS = messageCreate(messageNotificationCreateDTO);
-        for (MessageNotificationSendDTO messageNotificationSendDTO : messageNotificationSendDTOS) {
-            messageNotificationProducer.dislikeSend(messageNotificationSendDTO);
+            messageNotificationProducer.send(messageNotificationSendDTO);
         }
     }
 
@@ -113,33 +94,15 @@ public class MessageNotificationServiceImpl extends ServiceImpl<MessageNotificat
      * 分发点赞消息通知
      */
     @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_QUEUE,
+            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_QUEUE,
                     arguments = @Argument(
                             name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
                             value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
                             type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
-            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_EXCHANGE,
-                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_EXCHANGE_TYPE),
-            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_LIKE_SEND_ROUTING_KEY))
-    public void likeMessageSend(MessageNotificationSendDTO messageNotificationSendDTO, Channel channel, Message message) {
-        MessageNotification messageNotification = new MessageNotification();
-        BeanUtils.copyProperties(messageNotificationSendDTO, messageNotification);
-        baseMapper.insert(messageNotification);
-    }
-
-    /**
-     * 分发踩消息通知
-     */
-    @RabbitListener(bindings = @QueueBinding(
-            value = @Queue(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_QUEUE,
-                    arguments = @Argument(
-                            name = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_NAME,
-                            value = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_VALUE,
-                            type = RabbitMqExchangeRouterConstant.X_MESSAGE_TTL_TYPE)),
-            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_EXCHANGE,
-                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_EXCHANGE_TYPE),
-            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_DISLIKE_SEND_ROUTING_KEY))
-    public void dislikeMessageSend(MessageNotificationSendDTO messageNotificationSendDTO, Channel channel, Message message) {
+            exchange = @Exchange(value = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_EXCHANGE,
+                    type = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_EXCHANGE_TYPE),
+            key = RabbitMqExchangeRouterConstant.MESSAGE_NOTIFICATION_SEND_ROUTING_KEY))
+    public void messageSend(MessageNotificationSendDTO messageNotificationSendDTO, Channel channel, Message message) {
         MessageNotification messageNotification = new MessageNotification();
         BeanUtils.copyProperties(messageNotificationSendDTO, messageNotification);
         baseMapper.insert(messageNotification);

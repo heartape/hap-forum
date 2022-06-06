@@ -1,6 +1,6 @@
 package com.heartape.hap.statistics;
 
-import com.heartape.hap.constant.ResourceRedisKeyConstant;
+import com.heartape.hap.constant.ResourceStatisticsKeyConstant;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -8,11 +8,11 @@ public class ArticleCollectionStatistics extends AbstractMasterSlaveOperateStati
 
     @Override
     public String masterKey(long masterId) {
-        return ResourceRedisKeyConstant.COLLECTION_ARTICLE + masterId;
+        return ResourceStatisticsKeyConstant.COLLECTION_ARTICLE + masterId;
     }
 
     @Override
     public String slaveKey(long slaveId) {
-        return ResourceRedisKeyConstant.COLLECTION_ARTICLE + ResourceRedisKeyConstant.SLAVE + slaveId;
+        return ResourceStatisticsKeyConstant.COLLECTION_ARTICLE + ResourceStatisticsKeyConstant.SLAVE + slaveId;
     }
 }

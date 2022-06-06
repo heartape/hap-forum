@@ -1,6 +1,7 @@
 package com.heartape.hap.controller;
 
 import com.github.pagehelper.PageInfo;
+import com.heartape.hap.constant.HeatDeltaEnum;
 import com.heartape.hap.entity.bo.TopicBO;
 import com.heartape.hap.entity.bo.TopicSimpleBO;
 import com.heartape.hap.entity.dto.TopicDTO;
@@ -56,6 +57,7 @@ public class TopicController {
     @ApiOperation("话题详情")
     public Result detail(@RequestParam Long topicId) {
         TopicBO topic = topicService.detail(topicId);
+        topicService.heatChange(topicId, HeatDeltaEnum.TOPIC_SELECT.getDelta());
         return Result.success(topic);
     }
 

@@ -1,6 +1,7 @@
 package com.heartape.hap.service;
 
-import com.heartape.hap.entity.dto.CreatorDTO;
+import com.heartape.hap.entity.dto.CreatorPhoneDTO;
+import com.heartape.hap.entity.dto.CreatorEmailDTO;
 
 public interface IRegisterService {
 
@@ -8,5 +9,7 @@ public interface IRegisterService {
 
     void checkPhone(String mobile);
 
-    void register(CreatorDTO creatorDTO);
+    void registerEmail(CreatorEmailDTO creatorDTO);
+
+    void registerPhone(CreatorPhoneDTO creatorPhoneDTO);
 }

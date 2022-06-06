@@ -15,7 +15,7 @@ public enum ResultCode {
     USER_ACCOUNT_FORBIDDEN(20004,"账号已被禁用"),
     USER_LOGIN_FORBIDDEN(20005,"账号已被暂时禁止登录"),
     USER_NOT_EXIST(20006,"用户不存在"),
-    USER_HAS_EXISTED(20007,"用户已存在"),
+    REGISTER_USER_EXISTED(20007,"用户已存在"),
     LOGIN_CREDENTIAL(20008,"凭证已存在"),
     USER_VERIFICATION_CODE_ERROR(20009,"随机验证码错误"),
     /** 业务 */
