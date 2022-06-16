@@ -1,0 +1,31 @@
+cache:
+  local-cache:
+    ar-hot:
+      max: 15
+      timeout: 100
+    ar-detail:
+      max: 15
+      timeout: 100
+    ac-hot:
+      max: 15
+      timeout: 100
+    acc-hot:
+      max: 15
+      timeout: 100
+    to-hot:
+      max: 15
+      timeout: 100
+    to-detail:
+      max: 15
+      timeout: 100
+    di-hot:
+      max: 15
+      timeout: 100
+    dc-hot:
+      max: 15
+      timeout: 100
+    dcc-hot:
+      max: 15
+      timeout: 100
+  remote-cache:
+    list: 100

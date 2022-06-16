@@ -12,7 +12,7 @@ spring:
   datasource:
     username: root
     password: root
-    url: jdbc:mysql://localhost:3306/hap
+    url: jdbc:mysql://localhost:3306/hap_forum
     driverClassName: com.mysql.cj.jdbc.Driver
 oss:
   accessId: 1
@@ -23,6 +23,6 @@ oss:
 token:
   secret: 1qweq2eq2wafawgf3
   expireTime: 7
-  header: Hap-Token
+  header: X-Token
 code:
   expireTime: 60
