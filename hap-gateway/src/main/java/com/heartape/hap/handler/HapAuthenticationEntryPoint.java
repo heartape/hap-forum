@@ -1,7 +1,6 @@
 package com.heartape.hap.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
 import com.heartape.hap.response.ErrorResult;
 import com.heartape.hap.response.ResultCode;
 import org.springframework.core.io.buffer.DataBuffer;
@@ -15,7 +14,9 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * 请求错误处理器,如未知路径
+ * 在获取ServerSecurityContextRepository中的token失败后转入认证流程
+ * 默认实现RedirectServerAuthenticationEntryPoint将重定向至/login登录,可以自定义重定向的路径
+ * 我这里前后端分离直接转为失败流程,由前端跳转
  */
 @Component
 public class HapAuthenticationEntryPoint implements ServerAuthenticationEntryPoint {

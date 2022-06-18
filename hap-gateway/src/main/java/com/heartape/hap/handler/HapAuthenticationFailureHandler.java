@@ -1,12 +1,11 @@
 package com.heartape.hap.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
 import com.heartape.hap.response.ErrorResult;
 import com.heartape.hap.response.ResultCode;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.security.core.AuthenticationException;
@@ -29,6 +28,8 @@ public class HapAuthenticationFailureHandler implements ServerAuthenticationFail
         // todo:修改http状态码
         ErrorResult result = ErrorResult.error(ResultCode.USER_LOGIN_ERROR,path);
         DataBuffer dataBuffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
+        // 解决中文乱码
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
         return response.writeWith(Mono.just(dataBuffer));
     }
 }

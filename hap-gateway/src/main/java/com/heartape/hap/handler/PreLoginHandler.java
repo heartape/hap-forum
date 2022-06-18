@@ -23,8 +23,9 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * 密码登录时对比验证码
+ * 已废弃,todo:并入登录流程
  */
-@Component
+@Deprecated
 @Slf4j
 public class PreLoginHandler implements WebFilter {
 

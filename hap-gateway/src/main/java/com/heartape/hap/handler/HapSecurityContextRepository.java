@@ -14,7 +14,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 /**
- * 存储认证授权的相关信息，根据url来选择不同的ReactiveAuthenticationManager实现类即不同的认证方式
+ * 存储和获取认证授权的相关信息，
+ * 在使用token的情况下改造为token认证入口
  */
 @Component
 @Slf4j

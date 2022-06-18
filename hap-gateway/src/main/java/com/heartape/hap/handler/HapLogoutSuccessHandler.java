@@ -1,10 +1,10 @@
 package com.heartape.hap.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
 import com.heartape.hap.response.Result;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
@@ -20,6 +20,8 @@ public class HapLogoutSuccessHandler implements ServerLogoutSuccessHandler {
             // todo:退出删除token
             Result result = Result.success();
             DataBuffer dataBuffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
+            // 解决中文乱码
+            response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
             return response.writeWith(Mono.just(dataBuffer));
         }));
     }

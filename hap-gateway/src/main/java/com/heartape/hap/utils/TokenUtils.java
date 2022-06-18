@@ -1,9 +1,9 @@
 package com.heartape.hap.utils;
 
+import com.heartape.hap.constant.HttpConstant;
 import com.heartape.hap.constant.LoginConstant;
 import com.heartape.hap.exception.LoginForbiddenException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -26,10 +26,6 @@ public class TokenUtils {
     @Autowired
     private RedisTemplate<String,Integer> intRedisTemplate;
 
-    /** 请求头 */
-    @Value("${token.header}")
-    private String header;
-
     /**
      * 检查是否是正确的邮箱格式
      */
@@ -41,7 +37,7 @@ public class TokenUtils {
     }
 
     public String getToken(ServerWebExchange exchange) {
-        List<String> headers = exchange.getRequest().getHeaders().get(header);
+        List<String> headers = exchange.getRequest().getHeaders().get(HttpConstant.HEADER_TOKEN);
         if (CollectionUtils.isEmpty(headers)) {
             return null;
         }

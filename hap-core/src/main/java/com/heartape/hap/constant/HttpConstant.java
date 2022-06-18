@@ -2,8 +2,8 @@ package com.heartape.hap.constant;
 
 public class HttpConstant {
 
-    /**请求头TOKEN*/
-    public final static String HEADER_TOKEN = "X-Token";
+    /**请求头TOKEN,尽量设置为全部小写,因为规范允许大小写不敏感,反代时会被转为全部小写*/
+    public final static String HEADER_TOKEN = "x-token";
     /**token过期时间(天)*/
     public final static int TOKEN_EXPIRE_TIME = 7;
     /** 令牌中的token对应的key */

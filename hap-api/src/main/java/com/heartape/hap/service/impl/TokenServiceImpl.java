@@ -3,6 +3,7 @@ package com.heartape.hap.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.heartape.hap.constant.AccountStatusEnum;
 import com.heartape.hap.entity.Creator;
+import com.heartape.hap.exception.LoginForbiddenException;
 import com.heartape.hap.mapper.CreatorMapper;
 import com.heartape.hap.service.ITokenService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,8 +18,11 @@ public class TokenServiceImpl implements ITokenService {
     @Override
     public Creator mailPasswordLogin(String email) {
         QueryWrapper<Creator> wrapper = new QueryWrapper<>();
-        wrapper.eq("email", email).eq("account_status", AccountStatusEnum.NORMAL.getCode()).eq("status", true);
+        wrapper.eq("email", email).eq("account_status", AccountStatusEnum.NORMAL.getCode());
         Creator creator = creatorMapper.selectOne(wrapper);
+        if (creator == null) {
+            throw new LoginForbiddenException("登陆失败");
+        }
         // 转换帐号状态
         String accountStatusCode = creator.getAccountStatus();
         String accountStatus = AccountStatusEnum.exchange(accountStatusCode);

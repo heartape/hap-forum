@@ -1,12 +1,10 @@
 package com.heartape.hap.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import com.google.gson.Gson;
 import com.heartape.hap.response.ErrorResult;
 import com.heartape.hap.response.ResultCode;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.access.AccessDeniedException;
@@ -31,6 +29,8 @@ public class HapAccessDeniedHandler implements ServerAccessDeniedHandler {
                     // todo:修改http状态码
                     ErrorResult result = ErrorResult.error(ResultCode.PERMISSION_NO_ACCESS,path);
                     DataBuffer buffer = dataBufferFactory.wrap(JSONObject.toJSONString(result).getBytes());
+                    // 解决中文乱码
+                    response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
                     return response.writeWith(Mono.just(buffer));
                 });
     }

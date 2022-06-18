@@ -36,8 +36,6 @@ public class SecurityConfig {
     private HapAuthenticationFailureHandler authenticationFailureHandler;
     @Autowired
     private HapLogoutSuccessHandler logoutSuccessHandler;
-    @Autowired
-    private PreLoginHandler preLoginHandler;
 
     /**
      * BCrypt密码编码
