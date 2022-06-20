@@ -47,7 +47,7 @@ public class RabbitConsumerAop {
         String exchange = message.getMessageProperties().getReceivedExchange();
         long deliveryTag = message.getMessageProperties().getDeliveryTag();
 
-        log.info( "\n"+"从rabbit接收消息:"
+        log.info( "\n从rabbit接收消息:"
                 + "\nMessageId:"+messageId
                 + "\nQueue:"+queue
                 + "\nRoutingKey:"+routingKey
